@@ -1,0 +1,141 @@
+{
+    "@context": "context.jsonld",
+    "sequence": [
+        {
+            "name": "data01",
+            "purpose": "test empty atom",
+            "premise": "data01-premise.ttl",
+	    "query": "data01-query.ttl",
+            "@type": "PositiveEntailmentTest"
+        }, {
+            "name": "data02",
+            "purpose": "test empty atom can fail",
+            "premise": "data02-premise.ttl",
+	    "query": "data02-query.ttl",
+            "@type": "NegativeEntailmentTest"
+        }, {
+            "name": "data03",
+            "purpose": "test filled atom",
+            "premise": "data03-premise.ttl",
+	    "query": "data03-query.ttl",
+            "@type": "PositiveEntailmentTest"
+        }, {
+            "name": "data04",
+            "purpose": "test filled atom can fail",
+            "premise": "data04-premise.ttl",
+	    "query": "data04-query.ttl",
+            "@type": "NegativeEntailmentTest"
+        }, {
+            "name": "data05",
+            "purpose": "test frame",
+            "premise": "data05-premise.ttl",
+	    "query": "data05-query.ttl",
+            "@type": "PositiveEntailmentTest"
+        }, {
+            "name": "data06",
+            "purpose": "test frame can fail",
+            "premise": "data06-premise.ttl",
+	    "query": "data06-query.ttl",
+            "@type": "NegativeEntailmentTest"
+        }, {
+            "name": "data07",
+            "purpose": "test equal",
+            "premise": "data07-premise.ttl",
+	    "query": "data07-query.ttl",
+            "@type": "PositiveEntailmentTest"
+        }, {
+            "name": "data08",
+            "purpose": "test equal can fail",
+            "premise": "data08-premise.ttl",
+	    "query": "data08-query.ttl",
+            "@type": "NegativeEntailmentTest"
+        }, {
+            "name": "data09",
+            "purpose": "test member",
+            "premise": "data09-premise.ttl",
+	    "query": "data09-query.ttl",
+            "@type": "PositiveEntailmentTest"
+        }, {
+            "name": "data10",
+            "purpose": "test member can fail",
+            "premise": "data10-premise.ttl",
+	    "query": "data10-query.ttl",
+            "@type": "NegativeEntailmentTest"
+        }, {
+            "name": "data11",
+            "purpose": "test subclass",
+            "premise": "data11-premise.ttl",
+	    "query": "data11-query.ttl",
+            "@type": "PositiveEntailmentTest"
+        }, {
+            "name": "data12",
+            "purpose": "test subclass can fail",
+            "premise": "data12-premise.ttl",
+	    "query": "data12-query.ttl",
+            "@type": "NegativeEntailmentTest"
+        }, {
+            "name": "data13",
+            "purpose": "test RIF entailment equal unspecified",
+            "premise": "data01-premise.ttl",
+	    "query": "data01-query.ttl",
+	    "entailment": ["http://www.w3.org/ns/entailment/RIF"],
+            "@type": "PositiveEntailmentTest"
+        }, {
+            "name": "data20",
+            "purpose": "test triple entailment for given entailment",
+            "premise": "data20-premise.ttl",
+	    "query": "data20-query.ttl",
+            "@type": "PositiveEntailmentTest",
+	    "entailment": ["http://www.w3.org/ns/entailment/Simple", "http://www.w3.org/ns/entailment/RDF", "http://www.w3.org/ns/entailment/RDFS", "http://www.w3.org/ns/entailment/D"]
+        }, {
+            "name": "data24",
+            "purpose": "test type entailment for given entailment",
+            "premise": "data24-premise.ttl",
+	    "query": "data24-query.ttl",
+            "@type": "PositiveEntailmentTest",
+	    "entailment": ["http://www.w3.org/ns/entailment/RDF", "http://www.w3.org/ns/entailment/RDFS", "http://www.w3.org/ns/entailment/OWL-RDF-Based", "http://www.w3.org/ns/entailment/OWL-Direct"]
+        }, {
+            "name": "data28",
+            "purpose": "test type entailment for entailment:OWL-Direct equal rif test RDF_Combination_Constant_Equivalence_3",
+            "premise": "data28-premise.ttl",
+	    "query": "data28-query.ttl",
+            "@type": "PositiveEntailmentTest",
+	    "entailment": ["http://www.w3.org/ns/entailment/Simple"]
+        }, {
+            "name": "data29",
+            "purpose": "test type entailment for entailment:OWL-Direct equal rif test RDF_Combination_Constant_Equivalence_2",
+            "premise": "data29-premise.ttl",
+	    "query": "data29-query.ttl",
+            "@type": "PositiveEntailmentTest",
+	    "entailment": ["http://www.w3.org/ns/entailment/Simple"]
+        }, {
+            "name": "data30",
+            "purpose": "test type entailment for entailment:OWL-Direct equal rif test RDF_Combination_Constant_Equivalence_4",
+            "premise": "data30-premise.ttl",
+	    "query": "data30-query.ttl",
+            "@type": "PositiveEntailmentTest",
+	    "entailment": ["http://www.w3.org/ns/entailment/Simple"]
+        }, {
+            "name": "data31",
+            "purpose": "In RDFS Entailment of subclass from rdfs:subclass. Needed for RDF_Combination_SubClass_2",
+            "premise": "data31-premise.ttl",
+	    "query": "data31-query.ttl",
+            "@type": "PositiveEntailmentTest",
+	    "entailment": ["http://www.w3.org/ns/entailment/RDFS"]
+        }, {
+            "name": "data32",
+            "purpose": "In SIMPLE rfds:subclass doesnt entail rif subclass. Needed for RDF_Combination_SubClass_5",
+            "premise": "data31-premise.ttl",
+	    "query": "data31-query.ttl",
+            "@type": "NegativeEntailmentTest",
+	    "entailment": ["http://www.w3.org/ns/entailment/Simple"]
+        }, {
+            "name": "data33",
+            "purpose": "Test list entailment in RDF",
+            "premise": "data33-premise.ttl",
+	    "query": "data33-query.ttl",
+            "@type": "PositiveEntailmentTest",
+	    "entailment": ["http://www.w3.org/ns/entailment/RDF", "http://www.w3.org/ns/entailment/RDFS"]
+	}
+    ]
+}
