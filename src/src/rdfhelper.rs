@@ -1,25 +1,25 @@
 use std::io::Error;
+use std::ffi::CString;
 use crate::shared::{RIFTerm};
 use crate::vocab::{rif};
-use oxrdf::vocab::{rdf};
-use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Graph, NamedOrBlankNode, Term, LiteralRef};
+use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Graph, NamedOrBlankNode, Term};
 
 
 pub fn retrieve_rifterm(graph: &Graph, root: NamedOrBlankNodeRef,
     ) -> Option<RIFTerm>
 {
-    let mut const_iri: Option<String> = None;
-    let mut value: Option<String> = None;
+    let mut const_iri: Option<CString> = None;
+    let mut value: Option<CString> = None;
     let mut items: Option<NamedOrBlankNodeRef> = None;
-    let mut lang: Option<String> = None;
-    let mut valuetype: Option<String> = None;
-    let mut var: Option<String> = None;
+    let mut lang: Option<CString> = None;
+    let mut valuetype: Option<CString> = None;
+    let mut var: Option<CString> = None;
     for x in graph.triples_for_subject(root){
         let pred: NamedNodeRef = x.predicate;
         match pred {
             rif::CONSTIRI => {
                 const_iri = match x.object {
-                    TermRef::Literal(iri) => Some(iri.value().to_owned()),
+                    TermRef::Literal(iri) => Some(CString::new(iri.value()).unwrap()),
                     _ => {return None;},
                 };
             },
@@ -28,11 +28,11 @@ pub fn retrieve_rifterm(graph: &Graph, root: NamedOrBlankNodeRef,
                     TermRef::Literal(iri) => iri,
                     _ => {return None;},
                 };
-                value = Some(val.value().to_owned());
+                value = Some(CString::new(val.value()).unwrap());
                 match val.language() {
-                    Some(l) => {lang = Some(l.to_owned());},
+                    Some(l) => {lang = Some(CString::new(l).unwrap());},
                     None => {
-                        valuetype = Some(val.datatype().as_str().to_owned());
+                        valuetype = Some(CString::new(val.datatype().as_str()).unwrap());
                     },
                 }
             },
@@ -46,7 +46,7 @@ pub fn retrieve_rifterm(graph: &Graph, root: NamedOrBlankNodeRef,
             }
             rif::VARNAME => {
                 var = match x.object {
-                    TermRef::Literal(iri) => Some(iri.value().to_owned()),
+                    TermRef::Literal(iri) => Some(CString::new(iri.value()).unwrap()),
                     _ => {return None;},
                 };
             }
@@ -62,7 +62,7 @@ pub fn retrieve_rifterm(graph: &Graph, root: NamedOrBlankNodeRef,
             => Some(RIFTerm::TypedLiteral(x, Some(y))),
         (None, Some(x), None, Some(y), None, None)
             => Some(RIFTerm::LangLiteral(x, y)),
-        (None, None, None, None, Some(x), None)
+        (None, None, None, None, Some(_), None)
             => Some(RIFTerm::Var),
         (None, None, None, None, None, Some(x))
             => match riftermlist_to_vec(graph, x) {

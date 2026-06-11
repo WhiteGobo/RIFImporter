@@ -1,6 +1,5 @@
-use std::ptr;
-use std::ffi::{c_char, CStr, c_uchar};
-use crate::shared::{RIFIData, RIFTerm};
+use std::ffi::{c_char, CStr};
+use crate::shared::{RIFTerm};
 
 #[repr(C)]
 pub struct RIFITerm {
@@ -40,28 +39,19 @@ const RIF_TERM_TYPE_LOCAL: u8 = 4;
 fn c2rust_convert_iri(cterm: *const RIFITerm) -> Option<RIFTerm>{
     unsafe {
         if (*cterm).value.is_null() {return None;}
-        let value = match CStr::from_ptr((*cterm).value).to_str() {
-            Ok(x) => x,
-            Err(_e) => {return None;},
-        };
-        Some(RIFTerm::IRI(value.to_owned()))
+        let value = CStr::from_ptr((*cterm).value).to_owned();
+        Some(RIFTerm::IRI(value))
     }
 }
 
 fn c2rust_convert_typedliteral(cterm: *const RIFITerm) -> Option<RIFTerm>{
     unsafe {
         if (*cterm).value.is_null() {return None;}
-        let value = match CStr::from_ptr((*cterm).value).to_str() {
-            Ok(x) => x.to_owned(),
-            Err(_e) => {return None;},
-        };
+        let value = CStr::from_ptr((*cterm).value).to_owned();
         let suffix = if (*cterm).suffix.is_null() {
             None
         } else {
-            match CStr::from_ptr((*cterm).suffix).to_str() {
-                Ok(x) => Some(x.to_owned()),
-                Err(_e) => {return None;},
-            }
+            Some(CStr::from_ptr((*cterm).suffix).to_owned())
         };
         Some(RIFTerm::TypedLiteral(value, suffix))
     }
@@ -71,14 +61,8 @@ fn c2rust_convert_langliteral(cterm: *const RIFITerm) -> Option<RIFTerm>{
     unsafe {
         if (*cterm).value.is_null() {return None;}
         if (*cterm).suffix.is_null() {return None;}
-        let value = match CStr::from_ptr((*cterm).value).to_str() {
-            Ok(x) => x.to_owned(),
-            Err(_e) => {return None;},
-        };
-        let suffix = match CStr::from_ptr((*cterm).suffix).to_str() {
-            Ok(x) => x.to_owned(),
-            Err(_e) => {return None;},
-        };
+        let value = CStr::from_ptr((*cterm).value).to_owned();
+        let suffix = CStr::from_ptr((*cterm).suffix).to_owned();
         Some(RIFTerm::LangLiteral(value, suffix))
     }
 }
@@ -90,7 +74,7 @@ fn c2rust_convert_list(cterm: *const RIFITerm) -> Option<RIFTerm>{
 
         if c_list.is_null() {return None;}
         let list = c2rust_riftermlist(c_list);
-        let rest = if c_rest.is_null() {
+        let _rest = if c_rest.is_null() {
             None
         } else {
             Some(c2rust_rifterm(c_rest))

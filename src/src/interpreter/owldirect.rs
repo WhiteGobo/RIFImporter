@@ -1,4 +1,4 @@
-use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, NamedOrBlankNode, Triple, TripleRef, Graph};
+use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Triple, TripleRef, Graph};
 use oxrdf::vocab::rdf;
 use crate::interpreter::MyInterpreter;
 use crate::shared::{Atom, Frame, Member, Subclass, Equal, RIFTerm};

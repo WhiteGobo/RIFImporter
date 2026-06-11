@@ -1,4 +1,4 @@
-use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, NamedOrBlankNode, Triple, Graph, TripleRef};
+use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Triple, Graph, TripleRef};
 use oxrdf::vocab::{rdf,rdfs};
 use crate::interpreter::MyInterpreter;
 use crate::shared::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
@@ -22,7 +22,7 @@ impl MyInterpreter for RDFSInterpreter {
         object: TermRef<'a>)
     {
         match subject {
-            NamedOrBlankNodeRef::NamedNode(x) => {
+            NamedOrBlankNodeRef::NamedNode(_) => {
                 match predicate {
                     rdf::FIRST => {
                         eprintln!("unspecified behaviour on <IRI> rdf:first");

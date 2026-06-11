@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
-char* copy2cstring(const char* input, uint64_t size);
+static char* copy2cstring(const char* input, uint64_t size);
 RIFITermList* RIFITermList_clone(const RIFITermList* list);
 RIFITerm* RIFITerm_clone(const RIFITerm* term);
 
@@ -83,7 +83,7 @@ void free_RIFITermList(RIFITermList* x)
 	}
 }
 
-RIFITerm* RIFITerm_new_iri(const char* value, uint64_t value_length){
+RIFITerm* RIFITerm_new_iri(const char* value, size_t value_length){
 	RIFITerm* ret = malloc(sizeof(RIFITerm));
 	if (ret == NULL) return NULL;
 	ret->type = RIF_IRI;
@@ -91,7 +91,7 @@ RIFITerm* RIFITerm_new_iri(const char* value, uint64_t value_length){
 	ret->suffix = NULL;
 	return ret;
 }
-RIFITerm* RIFITerm_new_typedliteral(const char* value, uint64_t value_length, const char* suffix, uint64_t suffix_length){
+RIFITerm* RIFITerm_new_typedliteral(const char* value, size_t value_length, const char* suffix, size_t suffix_length){
 	RIFITerm* ret = malloc(sizeof(RIFITerm));
 	if (ret == NULL) return NULL;
 	ret->type = RIF_TypedLiteral;
@@ -100,7 +100,7 @@ RIFITerm* RIFITerm_new_typedliteral(const char* value, uint64_t value_length, co
 	return ret;
 }
 
-RIFITerm* RIFITerm_new_langliteral(const char* value, uint64_t value_length, const char* suffix, uint64_t suffix_length)
+RIFITerm* RIFITerm_new_langliteral(const char* value, size_t value_length, const char* suffix, size_t suffix_length)
 {
 	RIFITerm* ret = malloc(sizeof(RIFITerm));
 	if (ret == NULL) return NULL;
@@ -119,7 +119,7 @@ RIFITerm* RIFITerm_new_list(const RIFITermList* list, const RIFITerm* rest){
 	return ret;
 }
 
-RIFITerm* RIFITerm_new_local(const char* value, uint64_t value_length){
+RIFITerm* RIFITerm_new_local(const char* value, size_t value_length){
 	RIFITerm* ret = malloc(sizeof(RIFITerm));
 	if (ret == NULL) return NULL;
 	ret->type = RIF_Local;
@@ -128,7 +128,7 @@ RIFITerm* RIFITerm_new_local(const char* value, uint64_t value_length){
 	return ret;
 }
 
-char* copy2cstring(const char* input, uint64_t size){
+static char* copy2cstring(const char* input, uint64_t size){
 	if (input == NULL) return NULL;
 	char* ret = malloc(size + 1);
 	memcpy(ret, input, size);

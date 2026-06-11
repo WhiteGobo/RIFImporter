@@ -27,7 +27,7 @@ fn get_subroot<'a>(graph: &'a Graph, root: NamedOrBlankNodeRef<'a>, pred: NamedN
     match graph.object_for_subject_predicate(root, pred) {
         Some(TermRef::BlankNode(x)) => Ok(x.into()),
         Some(TermRef::NamedNode(x)) => Ok(x.into()),
-        Some(x) => Err(Error::other("Not found")),
+        Some(_) => Err(Error::other("Not found")),
         _ => Err(Error::other("Found wrong term type")),
     }
 }
@@ -301,7 +301,6 @@ impl MyInterpreter for RIFInterpreter {
                 Some(x) => x,
                 None => {eprintln!("broken atom2"); continue;},
             };
-            eprintln!("get_next_atom1 {:?} {:?}", op, found_op);
             if op != RIFTerm::Var && op != found_op {
                 continue;
             }

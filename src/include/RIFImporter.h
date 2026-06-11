@@ -11,6 +11,32 @@
 #define _RIFENTAIL_RIF_ _RIFENTAIL_ "RIF"
 #define _RIFENTAIL_OWLDIRECT_ _RIFENTAIL_ "OWL-Direct"
 
+#ifndef RDF_TERMTYPE_DEFINED
+#define RDF_TERMTYPE_DEFINED
+typedef enum {
+        URI = 0,
+        BNODE = 1,
+        TYPEDLITERAL = 2,
+        LANGLITERAL = 3
+} TERMTYPE;
+#endif
+
+#ifndef TRIPLEHANDLER_DEFINED
+#define TRIPLEHANDLER_DEFINED
+/*
+ * Use TERMTYPE for subject_type, object_type and graph_type.
+ * If graphid is NULL, the default graph is used.
+ */
+typedef int8_t TripleHandler(
+                const char* subject, uint8_t subject_type,
+                const char* predicate,
+                const char* object, const char* object_suffix,
+                uint8_t object_type,
+                const char* graphid, uint8_t graph_type,
+                void* user);
+
+#endif //TRIPLEHANDLER_DEFINED
+
 typedef enum {
 	RIF_IRI = 0,
 	RIF_TypedLiteral = 1,
@@ -74,6 +100,7 @@ int8_t RIFIData_add(
                 const char* graphid, uint8_t graph_type,
                 RIFIData* user);
 
+int64_t RIFIData_send_as_rdf(RIFIData*, TripleHandler* hook, void* hook_data);
 
 uint64_t RIFIData_remaining(RIFIData*);
 void free_RIFIData(RIFIData*);

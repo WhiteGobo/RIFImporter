@@ -6,7 +6,7 @@ pub mod d;
 pub mod rdf;
 pub mod rdfs;
 
-use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, NamedOrBlankNode};
+use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef};
 use crate::shared::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
 
 pub trait MyInterpreter {

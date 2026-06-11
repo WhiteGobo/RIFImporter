@@ -1,4 +1,4 @@
-use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, NamedOrBlankNode, Triple, Graph, TripleRef};
+use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Triple, Graph, TripleRef};
 use crate::interpreter::MyInterpreter;
 use crate::shared::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
 
@@ -59,7 +59,7 @@ impl MyInterpreter for SimpleInterpreter {
         None
     }
 
-    fn get_next_member(&mut self, instance: RIFTerm, class: RIFTerm,
+    fn get_next_member(&mut self, _instance: RIFTerm, _class: RIFTerm,
         ) -> Option<Member>
     {
         None

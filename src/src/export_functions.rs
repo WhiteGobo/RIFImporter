@@ -1,5 +1,5 @@
 use std::ptr;
-use std::ffi::{c_char, CStr, c_uchar};
+use std::ffi::{c_char, CStr, c_uchar, c_void, CString};
 use crate::shared::{RIFIData, RIFTerm, Atom, Frame, Member, Equal, Subclass};
 use crate::genterms::{
     generate_IdentifiedNode, generate_IRI, generate_Term,
@@ -20,12 +20,11 @@ use crate::extern_c_structs::{
 
 
 unsafe extern "C" {
-    //pub unsafe fn copy2cstring(input: *mut c_uchar) -> *mut c_uchar;
-    pub unsafe fn RIFITerm_new_iri(value: *const c_uchar, value_length: u64) -> *mut RIFITerm;
-    pub unsafe fn RIFITerm_new_typedliteral(value: *const c_uchar, value_length: u64, suffix: *const c_uchar, value_length: u64) -> *mut RIFITerm;
-    pub unsafe fn RIFITerm_new_langliteral(value: *const c_uchar, value_length: u64, suffix: *const c_uchar, value_length: u64) -> *mut RIFITerm;
+    pub unsafe fn RIFITerm_new_iri(value: *const c_char, value_length: usize) -> *mut RIFITerm;
+    pub unsafe fn RIFITerm_new_typedliteral(value: *const c_char, value_length: usize, suffix: *const c_char, value_length: usize) -> *mut RIFITerm;
+    pub unsafe fn RIFITerm_new_langliteral(value: *const c_char, value_length: usize, suffix: *const c_char, value_length: usize) -> *mut RIFITerm;
     pub unsafe fn RIFITermList_append(old: *mut RIFITermList, new: *mut RIFITerm) -> *mut RIFITermList;
-    pub unsafe fn RIFITerm_new_local(value: *const c_uchar, value_length: u64) -> *mut RIFITerm;
+    pub unsafe fn RIFITerm_new_local(value: *const c_char, value_length: usize) -> *mut RIFITerm;
     pub unsafe fn RIFIFrame_new(object: *mut RIFITerm, slotkey: *mut RIFITerm, slotvalue: *mut RIFITerm) -> *mut RIFIFrame;
     pub unsafe fn RIFIAtom_new(op: *mut RIFITerm, args: *mut RIFITermList) -> *mut RIFIAtom;
     pub unsafe fn RIFISubclass_new(sub: *mut RIFITerm, super_: *mut RIFITerm) -> *mut RIFISubclass;
@@ -157,21 +156,18 @@ pub extern "C" fn RIFIData_get_next_frame(data: *mut RIFIData, object: *const RI
     let obj_q = c2rust_rifterm(object);
     let key_q = c2rust_rifterm(slotkey);
     let val_q = c2rust_rifterm(slotvalue);
-    unsafe {
-        let new_frame = unsafe {
-            match (*data).get_next_frame(obj_q, key_q, val_q){
-                Some(x) => x,
-                None => {return ptr::null_mut();},
-            }
-        };
-        eprintln!("return frame: {:?}", new_frame);
-        match new_frame.to_c_frame() {
-            Ok(x) => x,
-            Err(e) => {
-                eprintln!("internal error {}", e);
-                ptr::null_mut()
-            },
+    let new_frame = unsafe {
+        match (*data).get_next_frame(obj_q, key_q, val_q){
+            Some(x) => x,
+            None => {return ptr::null_mut();},
         }
+    };
+    match new_frame.to_c_frame() {
+        Ok(x) => x,
+        Err(e) => {
+            eprintln!("internal error {}", e);
+            ptr::null_mut()
+        },
     }
 }
 
@@ -311,38 +307,19 @@ impl RIFTerm {
     pub fn to_c_term(&self) -> *mut RIFITerm {
         match self {
             RIFTerm::IRI(value) => unsafe {
-                let vlen: u64 = match value.len().try_into() {
-                    Ok(x) => x,
-                    Err(_) => usize::MAX.try_into().unwrap(),
-                };
-                RIFITerm_new_iri(value.as_ptr(), vlen)
+                RIFITerm_new_iri(value.as_ptr(), value.count_bytes())
             },
             RIFTerm::TypedLiteral(value, suffix) => unsafe {
-                let vlen: u64 = match value.len().try_into() {
-                    Ok(x) => x,
-                    Err(_) => usize::MAX.try_into().unwrap(),
-                };
                 let (c_suffix, suffix_len) = match suffix {
-                    Some(x) => (x.as_ptr(), x.len()),
+                    Some(x) => (x.as_ptr(), x.count_bytes()),
                     None => (ptr::null(), 0),
                 };
-                let slen: u64 = match suffix_len.try_into() {
-                    Ok(x) => x,
-                    Err(_) => usize::MAX.try_into().unwrap(),
-                };
-                RIFITerm_new_typedliteral(value.as_ptr(), vlen, c_suffix, slen)
+                RIFITerm_new_typedliteral(value.as_ptr(), value.count_bytes(),
+                                        c_suffix, suffix_len)
             }
             RIFTerm::LangLiteral(value, suffix) => unsafe {
-                let vlen: u64 = match value.len().try_into() {
-                    Ok(x) => x,
-                    Err(_) => usize::MAX.try_into().unwrap(),
-                };
-                let slen: u64 = match suffix.len().try_into() {
-                    Ok(x) => x,
-                    Err(_) => usize::MAX.try_into().unwrap(),
-                };
-                RIFITerm_new_langliteral(value.as_ptr(), vlen,
-                                        suffix.as_ptr(), slen)
+                RIFITerm_new_langliteral(value.as_ptr(), value.count_bytes(),
+                                        suffix.as_ptr(), suffix.count_bytes())
             },
             RIFTerm::List(list) => unsafe {
                 let c_list = vec_to_rifitermlist(list);
@@ -351,13 +328,28 @@ impl RIFTerm {
                 ret
             },
             RIFTerm::Local(value) => unsafe {
-                let vlen: u64 = match value.len().try_into() {
-                    Ok(x) => x,
-                    Err(_) => usize::MAX.try_into().unwrap(),
-                };
-                RIFITerm_new_local(value.as_ptr(), vlen)
+                RIFITerm_new_local(value.as_ptr(), value.count_bytes())
             },
             RIFTerm::Var => ptr::null_mut(),
+        }
+    }
+}
+
+use crate::formula_call_rdf_hook::*;
+
+#[unsafe(no_mangle)]
+pub extern "C" fn RIFIData_send_as_rdf(
+    data: *mut RIFIData,
+    hook: TripleHandler,
+    hook_data: *mut c_void,
+) -> i64 {
+    unsafe {
+        match (*data).send_as_rdf(hook, hook_data) {
+            Ok(_) => 0,
+            Err(e) => {
+                eprintln!("RIFIData_send_as_rdf failed with: {}", e);
+                1
+            },
         }
     }
 }

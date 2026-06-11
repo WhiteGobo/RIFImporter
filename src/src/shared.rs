@@ -1,4 +1,5 @@
 use crate::genterms::BNodeMap;
+use std::ffi::CString;
 use std::collections::HashMap;
 use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, BlankNode, NamedOrBlankNode, Term, NamedNode, LiteralRef, Literal};
 //use crate::entailment_map::Entailment;
@@ -6,11 +7,11 @@ use crate::interpreter::{RIFInterpreter, SimpleInterpreter, RDFInterpreter, RDFS
 
 #[derive(Debug, PartialEq)]
 pub enum RIFTerm {
-    IRI(String),
-    TypedLiteral(String, Option<String>),
-    LangLiteral(String, String),
+    IRI(CString),
+    TypedLiteral(CString, Option<CString>),
+    LangLiteral(CString, CString),
     List(Vec<RIFTerm>),
-    Local(String),
+    Local(CString),
     Var,
 }
 
@@ -20,6 +21,14 @@ impl RIFTerm {
     }
 }
 
+#[derive(Debug)]
+pub enum Formula {
+    Atom(Atom),
+    Frame(Frame),
+    Subclass(Subclass),
+    Member(Member),
+    Equal(Equal),
+}
 
 #[derive(Debug)]
 pub struct Atom {
@@ -74,6 +83,34 @@ pub struct RIFIData {
 use crate::entailment_map::Entailment;
 use crate::entailment_map::Entailment::{Simple, RDF, RDFS, D,
                                     OWLRDFBased, RIF, OWLDirect};
+
+impl Iterator for RIFIData {
+    type Item = Formula;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.get_next_atom(RIFTerm::Var, None){
+            Some(x) => {return Some(Formula::Atom(x));},
+            None => {},
+        }
+        match self.get_next_frame(RIFTerm::Var, RIFTerm::Var, RIFTerm::Var) {
+            Some(x) => {return Some(Formula::Frame(x));},
+            None => {},
+        }
+        match self.get_next_subclass(RIFTerm::Var, RIFTerm::Var) {
+            Some(x) => {return Some(Formula::Subclass(x));},
+            None => {},
+        }
+        match self.get_next_member(RIFTerm::Var, RIFTerm::Var) {
+            Some(x) => {return Some(Formula::Member(x));},
+            None => {},
+        }
+        match self.get_next_equal(RIFTerm::Var, RIFTerm::Var) {
+            Some(x) => {return Some(Formula::Equal(x));},
+            None => {},
+        }
+        None
+    }
+}
 
 impl RIFIData {
     pub fn new(entailment: Option<&str>) -> Option<Self> {
@@ -153,13 +190,13 @@ impl From<LiteralRef<'_>> for RIFTerm {
     fn from(x: LiteralRef<'_>) -> Self {
         if let Some(y) = x.language() {
             RIFTerm::LangLiteral(
-                x.value().to_string(),
-                y.to_string()
+                CString::new(x.value()).unwrap(),
+                CString::new(y).unwrap(),
             )
         } else {
             RIFTerm::TypedLiteral(
-                x.value().to_string(),
-                Some(x.datatype().as_str().to_owned()),
+                CString::new(x.value()).unwrap(),
+                Some(CString::new(x.datatype().as_str()).unwrap()),
             )
         }
     }
@@ -169,13 +206,13 @@ impl From<Literal> for RIFTerm {
     fn from(x: Literal) -> Self {
         if let Some(y) = x.language() {
             RIFTerm::LangLiteral(
-                x.value().to_string(),
-                y.to_string()
+                CString::new(x.value()).unwrap(),
+                CString::new(y).unwrap(),
             )
         } else {
             RIFTerm::TypedLiteral(
-                x.value().to_string(),
-                Some(x.datatype().as_str().to_owned()),
+                CString::new(x.value()).unwrap(),
+                Some(CString::new(x.datatype().as_str()).unwrap()),
             )
         }
     }
@@ -185,23 +222,27 @@ impl From<Term> for RIFTerm {
     fn from(x: Term) -> Self {
         match x {
             Term::Literal(x) => x.into(),
-            Term::NamedNode(x) => RIFTerm::IRI(x.as_str().to_owned()),
-            Term::BlankNode(x) => RIFTerm::Local(x.as_str().to_owned()),
+            Term::NamedNode(x)
+                => RIFTerm::IRI(CString::new(x.as_str()).unwrap()),
+            Term::BlankNode(x)
+                => RIFTerm::Local(CString::new(x.as_str()).unwrap()),
         }
     }
 }
 
 impl From<NamedNode> for RIFTerm {
     fn from(x: NamedNode) -> Self {
-        RIFTerm::IRI(x.as_str().to_owned())
+        RIFTerm::IRI(CString::new(x.as_str()).unwrap())
     }
 }
 
 impl From<NamedOrBlankNode> for RIFTerm {
     fn from(x: NamedOrBlankNode) -> Self {
         match x {
-            NamedOrBlankNode::NamedNode(x) => RIFTerm::IRI(x.as_str().to_owned()),
-            NamedOrBlankNode::BlankNode(x) => RIFTerm::Local(x.as_str().to_owned()),
+            NamedOrBlankNode::NamedNode(x)
+                => RIFTerm::IRI(CString::new(x.as_str()).unwrap()),
+            NamedOrBlankNode::BlankNode(x)
+                => RIFTerm::Local(CString::new(x.as_str()).unwrap()),
         }
     }
 }
@@ -211,23 +252,27 @@ impl From<TermRef<'_>> for RIFTerm {
     fn from(x: TermRef<'_>) -> Self {
         match x {
             TermRef::Literal(x) => x.into(),
-            TermRef::NamedNode(x) => RIFTerm::IRI(x.as_str().to_owned()),
-            TermRef::BlankNode(x) => RIFTerm::Local(x.as_str().to_owned()),
+            TermRef::NamedNode(x)
+                => RIFTerm::IRI(CString::new(x.as_str()).unwrap()),
+            TermRef::BlankNode(x)
+                => RIFTerm::Local(CString::new(x.as_str()).unwrap()),
         }
     }
 }
 
 impl From<NamedNodeRef<'_>> for RIFTerm {
     fn from(x: NamedNodeRef<'_>) -> Self {
-        RIFTerm::IRI(x.as_str().to_owned())
+        RIFTerm::IRI(CString::new(x.as_str()).unwrap())
     }
 }
 
 impl From<NamedOrBlankNodeRef<'_>> for RIFTerm {
     fn from(x: NamedOrBlankNodeRef<'_>) -> Self {
         match x {
-            NamedOrBlankNodeRef::NamedNode(x) => RIFTerm::IRI(x.as_str().to_owned()),
-            NamedOrBlankNodeRef::BlankNode(x) => RIFTerm::Local(x.as_str().to_owned()),
+            NamedOrBlankNodeRef::NamedNode(x)
+                => RIFTerm::IRI(CString::new(x.as_str()).unwrap()),
+            NamedOrBlankNodeRef::BlankNode(x)
+                => RIFTerm::Local(CString::new(x.as_str()).unwrap()),
         }
     }
 }
