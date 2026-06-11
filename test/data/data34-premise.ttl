@@ -1,0 +1,3 @@
+@prefix ex: <http://example.org/example#> .
+
+ex:a ex:p (1 (2 3)) .

@@ -41,9 +41,11 @@ impl MyInterpreter for RDFSInterpreter {
         self.data.insert(t);
     }
 
-    fn get_next_frame(&mut self, object: RIFTerm, slotkey: RIFTerm, slotvalue: RIFTerm,
+    fn get_next_frame(
+        &mut self, object: RIFTerm, slotkey: RIFTerm, slotvalue: RIFTerm,
         ) -> Option<Frame>
     {
+        eprintln!("get_next_frame");
         let mut ret = None;
         let mut remove: Option<Triple> = None;
         for triple in self.data.iter() {
@@ -54,12 +56,17 @@ impl MyInterpreter for RDFSInterpreter {
                 rdfs::SUB_CLASS_OF => {continue;},
                 _ => {},
             }
+            eprintln!("triple {:?}", triple);
             let found_subj: RIFTerm
                 = match rdflist_to_riftermvec(&self.data, triple.subject) {
                     Some(l) => RIFTerm::List(l),
                     None => triple.subject.into(),
                 };
+            if object != RIFTerm::Var && object != found_subj {continue;}
+            eprintln!("triple1");
             let found_pred: RIFTerm = triple.predicate.into();
+            if slotkey != RIFTerm::Var && slotkey != found_pred {continue;}
+            eprintln!("triple2");
             let found_obj: RIFTerm = match triple.object {
                 TermRef::BlankNode(x) => match rdflist_to_riftermvec(&self.data, x.into()){
                     Some(l) => RIFTerm::List(l),
@@ -67,9 +74,9 @@ impl MyInterpreter for RDFSInterpreter {
                 },
                 _ => triple.object.into(),
             };
-            if object != RIFTerm::Var && object != found_subj {continue;}
-            if slotkey != RIFTerm::Var && slotkey != found_pred {continue;}
+            eprintln!("obj {:?}", found_obj);
             if slotvalue != RIFTerm::Var && slotvalue != found_obj {continue;}
+            eprintln!("triple3");
             remove = Some(triple.into());
             ret = Some(Frame{
                 object: found_subj,

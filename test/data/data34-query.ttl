@@ -1,0 +1,18 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rif: <http://www.w3.org/2007/rif#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[] a rif:Frame ;
+    rif:object [ a rif:Const ;
+            rif:constIRI "http://example.org/example#a"^^xsd:anyURI ] ;
+    rif:slots ( [ a rif:Slot ;
+                rif:slotkey [ a rif:Const ;
+                        rif:constIRI "http://example.org/example#p"^^xsd:anyURI ] ;
+                rif:slotvalue [ a rif:List ; rif:items (
+			[ a rif:Const ; rif:value 1 ]
+			[ a rif:List ; rif:items (
+				[ a rif:Const ; rif:value 2 ]
+				[ a rif:Const ; rif:value 3 ]
+			) ]
+		) ]
+] ) .

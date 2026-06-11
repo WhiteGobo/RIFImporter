@@ -75,6 +75,12 @@
             "@type": "NegativeEntailmentTest"
         }, {
             "name": "data13",
+            "purpose": "test stacked list arent flat",
+            "premise": "data13-premise.ttl",
+	    "query": "data13-query.ttl",
+            "@type": "NegativeEntailmentTest"
+        }, {
+            "name": "data14",
             "purpose": "test RIF entailment equal unspecified",
             "premise": "data01-premise.ttl",
 	    "query": "data01-query.ttl",
@@ -134,6 +140,13 @@
             "purpose": "Test list entailment in RDF",
             "premise": "data33-premise.ttl",
 	    "query": "data33-query.ttl",
+            "@type": "PositiveEntailmentTest",
+	    "entailment": ["http://www.w3.org/ns/entailment/RDF", "http://www.w3.org/ns/entailment/RDFS"]
+        }, {
+            "name": "data34",
+            "purpose": "Test stacked list entailment in RDF",
+            "premise": "data34-premise.ttl",
+	    "query": "data34-query.ttl",
             "@type": "PositiveEntailmentTest",
 	    "entailment": ["http://www.w3.org/ns/entailment/RDF", "http://www.w3.org/ns/entailment/RDFS"]
 	}

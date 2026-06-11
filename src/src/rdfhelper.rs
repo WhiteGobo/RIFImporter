@@ -119,8 +119,15 @@ pub fn rdflist_to_riftermvec(graph: &Graph, root: NamedOrBlankNodeRef,
     ) -> Option<Vec<RIFTerm>> 
 {
     let ret1 = rdflist_to_vec(graph, root)?;
-    let mut ret2 = Vec::new();
+    let mut ret2: Vec<RIFTerm> = Vec::new();
     for x in ret1 {
+        let ref_x = x.as_ref();
+        if let TermRef::BlankNode(b) = ref_x {
+            if let Some(l) = rdflist_to_riftermvec(graph, b.into()) {
+                ret2.push(RIFTerm::List(l));
+                continue;
+            }
+        }
         ret2.push(x.into());
     }
     Some(ret2)
