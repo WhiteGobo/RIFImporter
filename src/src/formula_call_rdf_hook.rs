@@ -77,6 +77,7 @@ const RIF_VAR: *const i8 = c"http://www.w3.org/2007/rif#Var".as_ptr();
 
 const RIF_OP: *const i8 = c"http://www.w3.org/2007/rif#op".as_ptr();
 const RIF_ARGS: *const i8 = c"http://www.w3.org/2007/rif#args".as_ptr();
+const RIF_SLOTS: *const i8 = c"http://www.w3.org/2007/rif#slots".as_ptr();
 const RIF_OBJECT: *const i8 = c"http://www.w3.org/2007/rif#object".as_ptr();
 const RIF_SLOTKEY: *const i8 = c"http://www.w3.org/2007/rif#slotkey".as_ptr();
 const RIF_SLOTVALUE: *const i8 = c"http://www.w3.org/2007/rif#slotvalue".as_ptr();
@@ -206,6 +207,19 @@ fn send_riftermlist(
     match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_LIST, null, URI, null, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
+    }
+    let list_base = match extend_cstring(&id, c"_list"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(0));},
+    };
+    match send_rdftermlist(list_base, BNODE, term, hook, hook_data) {
+        Err(e) => {return Err(e);},
+        Ok((x, t)) => {
+            match hook(id.as_ptr(), id_type, RIF_ITEMS, x.as_ptr(), null, t, null, BNODE, hook_data){
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+        },
     }
     Ok((id, id_type))
 }
@@ -382,39 +396,212 @@ fn send_atom(
 }
 
 fn send_frame(
-    _atom: &Frame,
+    frame: &Frame,
     id: CString, id_type: u8,
-    _hook: TripleHandler,
-    _hook_data: *mut c_void,
+    hook: TripleHandler,
+    hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
+    const null: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_FRAME, null, URI, null, BNODE, hook_data){
+        0 => {},
+        x => {return Err(HookError::retval(x));},
+    }
+    let obj_base = match extend_cstring(&id, c"_obj"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(0));},
+    };
+    match send_term(obj_base, BNODE, &frame.object, hook, hook_data) {
+        Err(e) => {return Err(e);},
+        Ok((obj, t)) => {
+            match hook(id.as_ptr(), BNODE, RIF_OBJECT, obj.as_ptr(), null, t, null, BNODE, hook_data){
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+        },
+    }
+    let slot_base = match extend_cstring(&id, c"_slot"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(0));},
+    };
+    let (slot, slottype) = match send_slot(&frame.slotkey, &frame.slotvalue, slot_base, BNODE, hook, hook_data) {
+        Ok(x) => x, 
+        Err(e) => {return Err(e);},
+    };
+    let (slots, slots_type) = match extend_cstring(&id, c"_slot"){
+        Ok(x) => (x, BNODE),
+        Err(_) => {return Err(HookError::internal(0));},
+    };
+    match hook(id.as_ptr(), id_type, RIF_SLOTS, slots.as_ptr(), null, slots_type, null, BNODE, hook_data){
+        0 => {},
+        x => {return Err(HookError::retval(x));},
+    }
+    match hook(slot.as_ptr(), slots_type, RDF_FIRST, slot.as_ptr(), null, slottype, null, BNODE, hook_data)
+    {
+        0 => {},
+        x => {return Err(HookError::retval(x));},
+    }
+    match hook(slot.as_ptr(), slots_type, RDF_REST, RDF_NIL_CSTR.as_ptr(), null, URI, null, BNODE, hook_data)
+    {
+        0 => {},
+        x => {return Err(HookError::retval(x));},
+    }
+    Ok((id, id_type))
+}
+
+fn send_slot(
+    key: &RIFTerm, val: &RIFTerm,
+    id: CString, id_type: u8,
+    hook: TripleHandler,
+    hook_data: *mut c_void,
+) -> Result<(CString, u8), HookError> {
+    const null: *const c_char = ptr::null();
+    let val_base = match extend_cstring(&id, c"_val"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(5));},
+    };
+    match send_term(val_base, BNODE, val, hook, hook_data) {
+        Err(e) => {return Err(e);},
+        Ok((x, t)) => {
+            match hook(id.as_ptr(), id_type, RIF_SLOTVALUE, x.as_ptr(), null, t, null, BNODE, hook_data){
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+        },
+    }
+    let key_base = match extend_cstring(&id, c"_key"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(6));},
+    };
+    match send_term(key_base, BNODE, key, hook, hook_data) {
+        Err(e) => {return Err(e);},
+        Ok((x, t)) => {
+            match hook(id.as_ptr(), id_type, RIF_SLOTKEY, x.as_ptr(), null, t, null, BNODE, hook_data){
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+        },
+    }
     Ok((id, id_type))
 }
 
 
 fn send_subclass(
-    _atom: &Subclass,
+    subclass: &Subclass,
     id: CString, id_type: u8,
-    _hook: TripleHandler,
-    _hook_data: *mut c_void,
+    hook: TripleHandler,
+    hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
+    const null: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_SUBCLASS, null, URI, null, BNODE, hook_data){
+        0 => {},
+        x => {return Err(HookError::retval(x));},
+    }
+    let sub_base = match extend_cstring(&id, c"_sub"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(0));},
+    };
+    match send_term(sub_base, BNODE, &subclass.sub, hook, hook_data) {
+        Err(e) => {return Err(e);},
+        Ok((obj, t)) => {
+            match hook(id.as_ptr(), BNODE, RIF_SUB, obj.as_ptr(), null, t, null, BNODE, hook_data){
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+        },
+    }
+    let super_base = match extend_cstring(&id, c"_super"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(0));},
+    };
+    match send_term(super_base, BNODE, &subclass.super_, hook, hook_data) {
+        Err(e) => {return Err(e);},
+        Ok((obj, t)) => {
+            match hook(id.as_ptr(), BNODE, RIF_SUPER, obj.as_ptr(), null, t, null, BNODE, hook_data){
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+        },
+    }
     Ok((id, id_type))
 }
 
 fn send_member(
-    _atom: &Member,
+    member: &Member,
     id: CString, id_type: u8,
-    _hook: TripleHandler,
-    _hook_data: *mut c_void,
+    hook: TripleHandler,
+    hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
+    const null: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_MEMBER, null, URI, null, BNODE, hook_data){
+        0 => {},
+        x => {return Err(HookError::retval(x));},
+    }
+    let inst_base = match extend_cstring(&id, c"_inst"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(0));},
+    };
+    match send_term(inst_base, BNODE, &member.instance, hook, hook_data) {
+        Err(e) => {return Err(e);},
+        Ok((obj, t)) => {
+            match hook(id.as_ptr(), BNODE, RIF_INSTANCE, obj.as_ptr(), null, t, null, BNODE, hook_data){
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+        },
+    }
+    let class_base = match extend_cstring(&id, c"_class"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(0));},
+    };
+    match send_term(class_base, BNODE, &member.class, hook, hook_data) {
+        Err(e) => {return Err(e);},
+        Ok((obj, t)) => {
+            match hook(id.as_ptr(), BNODE, RIF_CLASS, obj.as_ptr(), null, t, null, BNODE, hook_data){
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+        },
+    }
     Ok((id, id_type))
 }
 
 fn send_equal(
-    _atom: &Equal,
+    equal: &Equal,
     id: CString, id_type: u8,
-    _hook: TripleHandler,
-    _hook_data: *mut c_void,
+    hook: TripleHandler,
+    hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
+    const null: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_EQUAL, null, URI, null, BNODE, hook_data){
+        0 => {},
+        x => {return Err(HookError::retval(x));},
+    }
+    let left_base = match extend_cstring(&id, c"_left"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(0));},
+    };
+    match send_term(left_base, BNODE, &equal.left, hook, hook_data) {
+        Err(e) => {return Err(e);},
+        Ok((obj, t)) => {
+            match hook(id.as_ptr(), BNODE, RIF_LEFT, obj.as_ptr(), null, t, null, BNODE, hook_data){
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+        },
+    }
+    let right_base = match extend_cstring(&id, c"_right"){
+        Ok(x) => x,
+        Err(_) => {return Err(HookError::internal(0));},
+    };
+    match send_term(right_base, BNODE, &equal.right, hook, hook_data) {
+        Err(e) => {return Err(e);},
+        Ok((obj, t)) => {
+            match hook(id.as_ptr(), BNODE, RIF_RIGHT, obj.as_ptr(), null, t, null, BNODE, hook_data){
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+        },
+    }
     Ok((id, id_type))
 }
 
