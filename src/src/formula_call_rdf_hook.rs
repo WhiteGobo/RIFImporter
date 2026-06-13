@@ -3,6 +3,7 @@ use std::ffi::{c_char, c_void, CString, NulError, CStr};
 use std::io::Error;
 use crate::shared::{RIFIData, Formula, RIFTerm, Atom, Frame, Subclass, Member, Equal};
 use std::ptr;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 pub enum HookError {
     Error(Error),
@@ -51,8 +52,13 @@ pub type TripleHandler = extern "C" fn(
     *const c_char, u8,
     *mut c_void) -> i8;
 
-fn new_bnode(id1: usize, id2: usize) -> String {
-    format!("bnode_{}_{}", id1, id2).to_owned()
+fn new_bnode(id_generator: &AtomicUsize) -> CString {
+    let id = id_generator.update(Ordering::Relaxed, Ordering::Relaxed, |x| x+1);
+    //Ensure this always works
+    let bnode_name = unsafe{
+        CString::new(format!("bnode_{}", id)).unwrap()
+    };
+    bnode_name
 }
 
 use oxrdf::vocab::rdf;
@@ -74,7 +80,11 @@ const RIF_SUBCLASS: *const i8 = c"http://www.w3.org/2007/rif#Subclass".as_ptr();
 const RIF_MEMBER: *const i8 = c"http://www.w3.org/2007/rif#Member".as_ptr();
 const RIF_EQUAL: *const i8 = c"http://www.w3.org/2007/rif#Equal".as_ptr();
 const RIF_VAR: *const i8 = c"http://www.w3.org/2007/rif#Var".as_ptr();
+const RIF_DOCUMENT: *const i8 = c"http://www.w3.org/2007/rif#Document".as_ptr();
+const RIF_GROUP: *const i8 = c"http://www.w3.org/2007/rif#Group".as_ptr();
 
+const RIF_PAYLOAD: *const i8 = c"http://www.w3.org/2007/rif#payload".as_ptr();
+const RIF_SENTENCES: *const i8 = c"http://www.w3.org/2007/rif#sentences".as_ptr();
 const RIF_OP: *const i8 = c"http://www.w3.org/2007/rif#op".as_ptr();
 const RIF_ARGS: *const i8 = c"http://www.w3.org/2007/rif#args".as_ptr();
 const RIF_SLOTS: *const i8 = c"http://www.w3.org/2007/rif#slots".as_ptr();
@@ -94,7 +104,51 @@ const RIF_VARNAME: *const i8 = c"http://www.w3.org/2007/rif#varname".as_ptr();
 
 const XSD_ANYURI: *const i8 = c"http://www.w3.org/2001/XMLSchema#anyURI".as_ptr();
 
+struct MyContext {
+    atomic: AtomicUsize,
+    hook: TripleHandler,
+    hook_data: *mut c_void,
+}
+
 impl RIFIData {
+    pub fn send_document_as_rdf(&mut self,
+        hook: TripleHandler,
+        hook_data: *mut c_void,
+    ) -> Result<(), HookError> {
+        let atomic = AtomicUsize::new(0);
+        let mut i = 0;
+        let mut ret: Vec<(CString, u8)> = Vec::new();
+        for formula in self.into_iter() {
+            let base = match CString::new(format!("b{}", i)){
+                Ok(x) => x,
+                Err(_) => {
+                    return Err(HookError::InternalError(0));
+                }
+            };
+            match formula.send_rdf(base, BNODE, hook, hook_data) {
+                Ok(x) => {ret.push(x);},
+                Err(e) => {return Err(e);},
+            }
+            i += 1;
+        }
+        let cntxt = MyContext::new(atomic, hook, hook_data);
+        let (sentences, sent_type) = {
+            let bid = cntxt.new_bnode();
+            match cntxt.send_rifgroup(bid, BNODE, &ret){
+                Err(e) => {return Err(e);},
+                Ok(x) => x,
+            }
+        };
+        {
+            let bid = cntxt.new_bnode();
+            match cntxt.send_rifdocument(bid, BNODE, sentences, sent_type){
+                Err(e) => {return Err(e);},
+                Ok(x) => x,
+            };
+        }
+        Ok(())
+    }
+
     pub fn send_as_rdf(&mut self,
         hook: TripleHandler,
         hook_data: *mut c_void,
@@ -350,6 +404,132 @@ fn send_rdftermlist(
     }
     Ok((id, id_type))
 }
+
+
+
+impl MyContext {
+    pub fn new(atomic: AtomicUsize,
+        hook: TripleHandler,
+        hook_data: *mut c_void,
+    ) -> Self {
+        MyContext {
+            atomic: atomic,
+            hook: hook,
+            hook_data: hook_data,
+        }
+    }
+
+    pub fn send_rifgroup(
+        &self,
+        id: CString, id_type: u8,
+        sentences: &Vec<(CString, u8)>,
+    ) -> Result<(CString, u8), HookError> {
+        const NULL: *const c_char = ptr::null();
+        match self.send(id.as_ptr(), id_type, RDF_TYPE,
+                        RIF_GROUP, NULL, URI)
+        {
+            0 => {},
+            x => {return Err(HookError::retval(x));},
+        }
+        let (listid, listtype) = {
+            let tmpid = self.new_bnode();
+            match self.send_rdflist(tmpid, BNODE, sentences) {
+                Ok(x) => x,
+                Err(e) => {return Err(e);},
+            }
+        };
+        match self.send(id.as_ptr(), id_type, RIF_SENTENCES,
+                        listid.as_ptr(), NULL, listtype)
+        {
+            0 => {},
+            x => {return Err(HookError::retval(x));},
+        }
+        Ok((id, id_type))
+    }
+
+    pub fn send_rifdocument(
+        &self,
+        id: CString, id_type: u8,
+        payload_id: CString, payload_type: u8,
+    ) -> Result<(CString, u8), HookError> {
+        const NULL: *const c_char = ptr::null();
+        match self.send(id.as_ptr(), id_type, RDF_TYPE,
+                        RIF_DOCUMENT, NULL, URI)
+        {
+            0 => {},
+            x => {return Err(HookError::retval(x));},
+        }
+        match self.send(id.as_ptr(), id_type, RIF_PAYLOAD,
+                        payload_id.as_ptr(), NULL, payload_type)
+        {
+            0 => {},
+            x => {return Err(HookError::retval(x));},
+        }
+        Ok((id, id_type))
+    }
+
+    fn send(
+        &self,
+        subj: *const c_char, subj_type: u8,
+        pred: *const c_char,
+        obj: *const c_char, obj_suffix: *const c_char, obj_type: u8,
+    ) -> i8 {
+        const null: *const c_char = ptr::null();
+        (self.hook)(
+            subj, subj_type,
+            pred,
+            obj, obj_suffix, obj_type,
+            null, BNODE, self.hook_data)
+    }
+
+    fn send_rdflist(
+        &self,
+        id: CString, id_type: u8,
+        list: &Vec<(CString, u8)>,
+    ) -> Result<(CString, u8), HookError> {
+        const null: *const c_char = ptr::null();
+        let mut iter = list.into_iter();
+        let (first_v, first_t) = match iter.next() {
+            Some(x) => x,
+            None => {return Ok((RDF_NIL_CSTR.to_owned(), URI));},
+        };
+        match self.send(id.as_ptr(), id_type, RDF_FIRST,
+                        first_v.as_ptr(), null, *first_t)
+        {
+            0 => {},
+            x => {return Err(HookError::retval(x));},
+        }
+        let mut last = id.clone();
+        let mut last_type = id_type;
+        
+        for (xv, xt) in iter {
+            let current = new_bnode(&self.atomic);
+            match self.send(current.as_ptr(), BNODE, RDF_FIRST, xv.as_ptr(), null, *xt)
+            {
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+            match self.send(last.as_ptr(), last_type, RDF_REST, current.as_ptr(), null, BNODE)
+            {
+                0 => {},
+                x => {return Err(HookError::retval(x));},
+            }
+            last = current;
+            last_type = BNODE;
+        }
+        match self.send(last.as_ptr(), last_type, RDF_REST, RDF_NIL_CSTR.as_ptr(), null, URI)
+        {
+            0 => {},
+            x => {return Err(HookError::retval(x));},
+        }
+        Ok((id, id_type))
+    }
+
+    pub fn new_bnode(&self) -> CString {
+        new_bnode(&self.atomic)
+    }
+}
+
 
 fn send_atom(
     atom: &Atom,

@@ -149,6 +149,12 @@
 	    "query": "data34-query.ttl",
             "@type": "PositiveEntailmentTest",
 	    "entailment": ["http://www.w3.org/ns/entailment/RDF", "http://www.w3.org/ns/entailment/RDFS"]
+        }, {
+            "name": "data35",
+            "purpose": "Test search through rif document",
+            "premise": "data35-premise.ttl",
+	    "query": "data35-query.ttl",
+            "@type": "PositiveEntailmentTest"
 	}
     ]
 }

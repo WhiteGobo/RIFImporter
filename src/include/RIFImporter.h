@@ -101,6 +101,7 @@ int8_t RIFIData_add(
                 RIFIData* user);
 
 int64_t RIFIData_send_as_rdf(RIFIData*, TripleHandler* hook, void* hook_data);
+int64_t RIFIData_send_document_as_rdf(RIFIData*, TripleHandler* hook, void* hook_data);
 
 uint64_t RIFIData_remaining(RIFIData*);
 void free_RIFIData(RIFIData*);

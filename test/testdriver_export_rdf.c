@@ -69,7 +69,12 @@ RIFIData* recreate_data(const char* filepath){
 		fprintf(stderr, "Failed to initialize serializer\n");
 		return NULL;
 	}
+	/*
 	err = RIFIData_send_as_rdf(data,
+				(TripleHandler*) Mime2Rdf4C_add,
+				ttlserializer);
+				*/
+	err = RIFIData_send_document_as_rdf(data,
 				(TripleHandler*) Mime2Rdf4C_add,
 				ttlserializer);
 

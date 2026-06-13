@@ -353,3 +353,20 @@ pub extern "C" fn RIFIData_send_as_rdf(
         }
     }
 }
+
+#[unsafe(no_mangle)]
+pub extern "C" fn RIFIData_send_document_as_rdf(
+    data: *mut RIFIData,
+    hook: TripleHandler,
+    hook_data: *mut c_void,
+) -> i64 {
+    unsafe {
+        match (*data).send_document_as_rdf(hook, hook_data) {
+            Ok(_) => 0,
+            Err(e) => {
+                eprintln!("RIFIData_send_as_rdf failed with: {}", e);
+                1
+            },
+        }
+    }
+}
