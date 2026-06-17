@@ -1,7 +1,7 @@
 use std::fmt;
 use std::ffi::{c_char, c_void, CString, NulError, CStr};
 use std::io::Error;
-use crate::shared::{RIFIData, Formula, RIFTerm, Atom, Frame, Subclass, Member, Equal};
+use crate::rifidata::{RIFIData, Formula, RIFTerm, Atom, Frame, Subclass, Member, Equal};
 use std::ptr;
 use std::sync::atomic::{AtomicUsize, Ordering};
 

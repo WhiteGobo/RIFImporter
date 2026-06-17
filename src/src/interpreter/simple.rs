@@ -1,14 +1,14 @@
 use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Triple, Graph, TripleRef};
 use crate::interpreter::MyInterpreter;
-use crate::shared::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
+use crate::rifidata::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
 
 pub struct SimpleInterpreter {
     data: Graph,
 }
 impl SimpleInterpreter {
-    pub fn new() -> Self {
+    pub fn new(data: Graph) -> Self {
         SimpleInterpreter{
-            data: Graph::new(),
+            data: data,
         }
     }
 }

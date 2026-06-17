@@ -1,7 +1,7 @@
 use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Triple, TripleRef, Graph};
 use oxrdf::vocab::rdf;
 use crate::interpreter::MyInterpreter;
-use crate::shared::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
+use crate::rifidata::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
 use crate::rdfhelper::rdflist_to_riftermvec;
 
 pub struct RDFInterpreter {
@@ -9,9 +9,9 @@ pub struct RDFInterpreter {
 }
 
 impl RDFInterpreter {
-    pub fn new() -> Self {
+    pub fn new(data: Graph) -> Self {
         RDFInterpreter{
-            data: Graph::new(),
+            data: data,
         }
     }
 }

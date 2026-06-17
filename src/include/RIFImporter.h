@@ -45,6 +45,7 @@ typedef enum {
 	RIF_Local = 4,
 } RIFITermType;
 
+typedef struct rifiGraph RIFIGraph;
 typedef struct rifiData RIFIData;
 typedef struct rifiTermList RIFITermList;
 typedef struct rifiTerm {
@@ -91,8 +92,9 @@ typedef struct rifiEqual {
 } RIFIEqual;
 
 
-RIFIData* RIFIData_new(const char* entailment);
-int8_t RIFIData_add(
+RIFIGraph* RIFIGraph_new();
+RIFIData* RIFIGraph_to_RIFIData(RIFIGraph*, const char* entailment);
+int8_t RIFIGraph_add(
                 const char* subject, uint8_t subject_type,
                 const char* predicate,
                 const char* object, const char* object_suffix,

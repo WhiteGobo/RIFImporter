@@ -1,16 +1,16 @@
 use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Triple, TripleRef, Graph};
 use oxrdf::vocab::rdf;
 use crate::interpreter::MyInterpreter;
-use crate::shared::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
+use crate::rifidata::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
 
 pub struct OWLDirectInterpreter {
     data: Graph,
 }
 
 impl OWLDirectInterpreter {
-    pub fn new() -> Self {
+    pub fn new(data: Graph) -> Self {
         OWLDirectInterpreter{
-            data: Graph::new(),
+            data: data,
         }
     }
 }

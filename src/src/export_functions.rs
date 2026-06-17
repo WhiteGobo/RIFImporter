@@ -1,6 +1,7 @@
 use std::ptr;
 use std::ffi::{c_char, CStr, c_uchar, c_void, CString};
-use crate::shared::{RIFIData, RIFTerm, Atom, Frame, Member, Equal, Subclass};
+use crate::rifidata::{RIFIData, RIFTerm, Atom, Frame, Member, Equal, Subclass};
+use crate::rifigraph::RIFIGraph;
 use crate::genterms::{
     generate_IdentifiedNode, generate_IRI, generate_Term,
 };
@@ -35,8 +36,12 @@ unsafe extern "C" {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn RIFIData_new(entailment: *const c_char) -> *mut RIFIData
-{
+pub extern "C" fn RIFIGraph_to_RIFIData(
+    graph: *mut RIFIGraph, entailment: *const c_char,
+) -> *mut RIFIData {
+    if graph.is_null(){
+        return ptr::null_mut();
+    }
     let ent = if entailment.is_null() {
         None
     } else {
@@ -48,23 +53,34 @@ pub extern "C" fn RIFIData_new(entailment: *const c_char) -> *mut RIFIData
             }
         }
     };
-    let x = match RIFIData::new(ent){
+    //consume graph
+    let g: RIFIGraph = Box::into_inner(unsafe {Box::from_raw(graph)});
+    let x = match g.to_RIFIData(ent) {
         Some(x) => x,
         None => {return ptr::null_mut();},
     };
+
     let mybox = Box::new(x);
     let config = Box::into_raw(mybox);
     config
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn RIFIData_add(
+pub extern "C" fn RIFIGraph_new() -> *mut RIFIGraph
+{
+    let mybox = Box::new(RIFIGraph::new());
+    let config = Box::into_raw(mybox);
+    config
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn RIFIGraph_add(
         subject: *const c_char, subject_type: u8,
         predicate: *const c_char,
         object: *const c_char, object_suffix: *const c_char,
         object_type: u8,
         _graph_id: *const c_char, _graph_type: u8,
-        data: *mut RIFIData,
+        data: *mut RIFIGraph,
         ) -> i64
 {
     if data.is_null() {return -1;}

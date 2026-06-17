@@ -1,6 +1,6 @@
 use std::io::Error;
 use std::ffi::CString;
-use crate::shared::{RIFTerm};
+use crate::rifidata::{RIFTerm};
 use crate::vocab::{rif};
 use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Graph, NamedOrBlankNode, Term};
 

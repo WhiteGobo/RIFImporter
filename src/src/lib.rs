@@ -1,5 +1,8 @@
+#![feature(box_into_inner)]
+
 pub mod export_functions;
-mod shared;
+mod rifidata;
+mod rifigraph;
 mod genterms;
 mod entailment_map;
 mod interpreter;

@@ -1,5 +1,5 @@
 use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Triple, Graph, TripleRef};
-use crate::shared::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
+use crate::rifidata::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
 use crate::interpreter::MyInterpreter;
 
 pub struct DInterpreter {
@@ -7,9 +7,9 @@ pub struct DInterpreter {
 }
 
 impl DInterpreter {
-    pub fn new() -> Self {
+    pub fn new(data: Graph) -> Self {
         DInterpreter{
-            data: Graph::new(),
+            data: data,
         }
     }
 }

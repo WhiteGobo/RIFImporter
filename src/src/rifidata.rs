@@ -75,16 +75,14 @@ pub enum Interpreter {
 */
 
 
-pub struct RIFIData {
+pub struct RIFIDataOld {
     bnodemap: HashMap<String, BlankNode>,
     interpreter: Box<dyn MyInterpreter>,
 }
 
 use crate::entailment_map::Entailment;
-use crate::entailment_map::Entailment::{Simple, RDF, RDFS, D,
-                                    OWLRDFBased, RIF, OWLDirect};
 
-impl Iterator for RIFIData {
+impl Iterator for RIFIDataOld {
     type Item = Formula;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -112,7 +110,9 @@ impl Iterator for RIFIData {
     }
 }
 
-impl RIFIData {
+
+impl RIFIDataOld {
+    /*
     pub fn new(entailment: Option<&str>) -> Option<Self> {
         //use Interpreter as ip;
         let int: Box<dyn MyInterpreter> = match entailment {
@@ -128,12 +128,12 @@ impl RIFIData {
                 None => {return None},
             }
         };
-        Some(RIFIData {
+        Some(RIFIDataOld {
             bnodemap: HashMap::new(),
             interpreter: int,
         })
     }
-    
+    */
     pub fn add<'a>(&mut self, subject: NamedOrBlankNodeRef<'a>,
         predicate: NamedNodeRef<'a>,
         object: TermRef<'a>)
@@ -171,7 +171,7 @@ impl RIFIData {
 }
 
 
-impl BNodeMap for &mut RIFIData {
+impl BNodeMap for &mut RIFIDataOld {
     fn get_bnode(self, key: &str) -> BlankNode
     {
         let m = &mut self.bnodemap;
@@ -273,6 +273,116 @@ impl From<NamedOrBlankNodeRef<'_>> for RIFTerm {
                 => RIFTerm::IRI(CString::new(x.as_str()).unwrap()),
             NamedOrBlankNodeRef::BlankNode(x)
                 => RIFTerm::Local(CString::new(x.as_str()).unwrap()),
+        }
+    }
+}
+
+
+
+
+
+pub enum RIFIData {
+    Simple(SimpleInterpreter),
+    RIF(RIFInterpreter),
+    RDF(RDFInterpreter),
+    RDFS(RDFSInterpreter),
+    D(DInterpreter),
+    OWLRDFBased(OWLRDFBasedInterpreter),
+    OWLDirect(OWLDirectInterpreter),
+}
+
+use oxrdf::Graph;
+
+impl RIFIData {
+    pub fn from_graph(graph: Graph, entailment: Option<&str>) -> Option<Self> {
+        use RIFIData as RD;
+        use crate::entailment_map::Entailment::{Simple, RDF, RDFS, D,
+                                            OWLRDFBased, RIF, OWLDirect};
+        Some(match entailment {
+            None => RD::RIF(RIFInterpreter::new(graph)),
+            Some(ent) => match Entailment::from(ent) {
+                Some(RIF) => RD::RIF(RIFInterpreter::new(graph)),
+                Some(Simple) => RD::Simple(SimpleInterpreter::new(graph)),
+                Some(RDF) => RD::RDF(RDFInterpreter::new(graph)),
+                Some(RDFS) => RD::RDFS(RDFSInterpreter::new(graph)),
+                Some(D) => RD::D(DInterpreter::new(graph)),
+                Some(OWLRDFBased) => RD::OWLRDFBased(OWLRDFBasedInterpreter::new(graph)),
+                Some(OWLDirect) => RD::OWLDirect(OWLDirectInterpreter::new(graph)),
+                None => {return None},
+            }
+        })
+    }
+
+    pub fn get_next_atom(&mut self, op: RIFTerm, args: Option<Vec<RIFTerm>>,
+        ) -> Option<Atom>
+    {
+        use RIFIData::{Simple, RIF, RDF, RDFS, D, OWLRDFBased, OWLDirect};
+        match self {
+            Simple(x) => x.get_next_atom(op, args),
+            RIF(x) => x.get_next_atom(op, args),
+            RDF(x) => x.get_next_atom(op, args),
+            RDFS(x) => x.get_next_atom(op, args),
+            D(x) => x.get_next_atom(op, args),
+            OWLRDFBased(x) => x.get_next_atom(op, args),
+            OWLDirect(x) => x.get_next_atom(op, args),
+        }
+    }
+
+    pub fn get_next_frame(&mut self, object: RIFTerm, slotkey: RIFTerm, slotvalue: RIFTerm,
+        ) -> Option<Frame>
+    {
+        use RIFIData::{Simple, RIF, RDF, RDFS, D, OWLRDFBased, OWLDirect};
+        match self {
+            Simple(x) => x.get_next_frame(object, slotkey, slotvalue),
+            RIF(x) => x.get_next_frame(object, slotkey, slotvalue),
+            RDF(x) => x.get_next_frame(object, slotkey, slotvalue),
+            RDFS(x) => x.get_next_frame(object, slotkey, slotvalue),
+            D(x) => x.get_next_frame(object, slotkey, slotvalue),
+            OWLRDFBased(x) => x.get_next_frame(object, slotkey, slotvalue),
+            OWLDirect(x) => x.get_next_frame(object, slotkey, slotvalue),
+        }
+    }
+
+    pub fn get_next_subclass(&mut self, sub: RIFTerm, super_: RIFTerm,
+        ) -> Option<Subclass>
+    {
+        use RIFIData::{Simple, RIF, RDF, RDFS, D, OWLRDFBased, OWLDirect};
+        match self {
+            Simple(x) => x.get_next_subclass(sub, super_),
+            RIF(x) => x.get_next_subclass(sub, super_),
+            RDF(x) => x.get_next_subclass(sub, super_),
+            RDFS(x) => x.get_next_subclass(sub, super_),
+            D(x) => x.get_next_subclass(sub, super_),
+            OWLRDFBased(x) => x.get_next_subclass(sub, super_),
+            OWLDirect(x) => x.get_next_subclass(sub, super_),
+        }
+    }
+    pub fn get_next_member(&mut self, instance: RIFTerm, class: RIFTerm,
+        ) -> Option<Member>
+    {
+        use RIFIData::{Simple, RIF, RDF, RDFS, D, OWLRDFBased, OWLDirect};
+        match self {
+            Simple(x) => x.get_next_member(instance, class),
+            RIF(x) => x.get_next_member(instance, class),
+            RDF(x) => x.get_next_member(instance, class),
+            RDFS(x) => x.get_next_member(instance, class),
+            D(x) => x.get_next_member(instance, class),
+            OWLRDFBased(x) => x.get_next_member(instance, class),
+            OWLDirect(x) => x.get_next_member(instance, class),
+        }
+    }
+    pub fn get_next_equal(&mut self, left: RIFTerm, right: RIFTerm,
+        ) -> Option<Equal>
+    {
+        use RIFIData::{Simple, RIF, RDF, RDFS, D, OWLRDFBased, OWLDirect};
+        match self {
+            Simple(x) => x.get_next_equal(left, right),
+            RIF(x) => x.get_next_equal(left, right),
+            RDF(x) => x.get_next_equal(left, right),
+            RDFS(x) => x.get_next_equal(left, right),
+            D(x) => x.get_next_equal(left, right),
+            OWLRDFBased(x) => x.get_next_equal(left, right),
+            OWLDirect(x) => x.get_next_equal(left, right),
         }
     }
 }

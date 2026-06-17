@@ -7,7 +7,7 @@ pub mod rdf;
 pub mod rdfs;
 
 use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef};
-use crate::shared::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
+use crate::rifidata::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
 
 pub trait MyInterpreter {
     fn add<'a>(&mut self, subject: NamedOrBlankNodeRef<'a>,

@@ -1,5 +1,5 @@
 use std::ffi::{c_char, CStr};
-use crate::shared::{RIFTerm};
+use crate::rifidata::{RIFTerm};
 
 #[repr(C)]
 pub struct RIFITerm {

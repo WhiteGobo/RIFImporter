@@ -1,7 +1,7 @@
 use std::io::Error;
 use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, Graph, TripleRef, NamedOrBlankNode};
 use crate::interpreter::MyInterpreter;
-use crate::shared::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
+use crate::rifidata::{Atom, Frame, Member, Subclass, Equal, RIFTerm};
 use crate::rdfhelper::{riftermlist_to_vec, retrieve_rifterm, rdfidlist_to_vec};
 use oxrdf::vocab::{rdf};
 use crate::vocab::{rif};
@@ -13,9 +13,9 @@ pub struct RIFInterpreter {
 }
 
 impl RIFInterpreter {
-    pub fn new()-> Self{
+    pub fn new(data: Graph)-> Self{
         RIFInterpreter{
-            data: Graph::new(),
+            data: data,
             removed: Vec::new(),
         }
     }
