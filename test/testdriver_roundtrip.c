@@ -123,6 +123,7 @@ static char* load_into_memory(const char* filepath){
 RIFIData* load_data(const char* filepath, const char* entailment){
 	int err;
 	RIFIData *data;
+	RIFIGraph *dataloader;
 	char *tmpinput;
 	const char* ext;
 	Mime2Rdf4C_ParserConfig* config;
@@ -140,13 +141,14 @@ RIFIData* load_data(const char* filepath, const char* entailment){
 		return NULL;
 	}
 	fprintf(stderr, "input : %s\n", tmpinput);
-	data = RIFIData_new(entailment);
+	dataloader = RIFIGraph_new();
 	if (data == NULL){
 		fprintf(stderr, "Failed to initialize RIFIData\n");
 		return NULL;
 	}
-	err = Mime2Rdf4C_parse(tmpinput, (TripleHandler*) RIFIData_add,
-					data, config);
+	err = Mime2Rdf4C_parse(tmpinput, (TripleHandler*) RIFIGraph_add,
+					dataloader, config);
+	data = RIFIGraph_to_RIFIData(dataloader, entailment);
 	free_Mime2Rdf4CParserConfig(config);
 	free(tmpinput);
 	if (err != 0){

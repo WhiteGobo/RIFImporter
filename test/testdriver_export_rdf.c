@@ -58,6 +58,7 @@ RIFIData* recreate_data(const char* filepath){
 	char* recreated_rdf_data;
 	Mime2Rdf4C_ParserConfig* config;
 	RIFIData* ret;
+	RIFIGraph* ret_data;
 	Mime2Rdf4C_SerializerConfig* ttlserializer;
 	RIFIData* data = load_data(filepath);
 	if (data == NULL){
@@ -89,15 +90,16 @@ RIFIData* recreate_data(const char* filepath){
 		return NULL;
 	}
 	fprintf(stderr, "Recreated rif in rdf: %s\n", recreated_rdf_data);
-	ret = RIFIData_new(NULL);
-	if (ret == NULL){
-		fprintf(stderr, "Failed to initialize RIFIData seconds\n");
+	ret_data = RIFIGraph_new();
+	if (data == NULL){
+		fprintf(stderr, "Failed to initialize RIFIGraph seconds\n");
 		return NULL;
 	}
 	config = Mime2Rdf4C_get_parser_from_ext(ext);
 	err = Mime2Rdf4C_parse(recreated_rdf_data,
-				(TripleHandler*) RIFIData_add, data,
+				(TripleHandler*) RIFIGraph_add, ret_data,
 				config);
+	ret = RIFIGraph_to_RIFIData(ret_data, NULL);
 	free_Mime2Rdf4CParserConfig(config);
 	free(recreated_rdf_data);
 	return ret;
@@ -151,6 +153,7 @@ static char* load_into_memory(const char* filepath){
 RIFIData* load_data(const char* filepath){
 	int err;
 	RIFIData *data;
+	RIFIGraph *dataloader;
 	char *tmpinput;
 	const char* ext = "ttl";
 	Mime2Rdf4C_ParserConfig* config;
@@ -165,13 +168,14 @@ RIFIData* load_data(const char* filepath){
 		return NULL;
 	}
 	fprintf(stderr, "input : %s\n", tmpinput);
-	data = RIFIData_new(NULL);
-	if (data == NULL){
-		fprintf(stderr, "Failed to initialize RIFIData\n");
+	dataloader = RIFIGraph_new();
+	if (dataloader == NULL){
+		fprintf(stderr, "Failed to initialize RIFIGraph\n");
 		return NULL;
 	}
-	err = Mime2Rdf4C_parse(tmpinput, (TripleHandler*) RIFIData_add,
-					data, config);
+	err = Mime2Rdf4C_parse(tmpinput, (TripleHandler*) RIFIGraph_add,
+					dataloader, config);
+	data = RIFIGraph_to_RIFIData(dataloader, NULL);
 	free_Mime2Rdf4CParserConfig(config);
 	free(tmpinput);
 	if (err != 0){

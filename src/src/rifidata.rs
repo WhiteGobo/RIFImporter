@@ -386,3 +386,31 @@ impl RIFIData {
         }
     }
 }
+
+impl Iterator for RIFIData {
+    type Item = Formula;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.get_next_atom(RIFTerm::Var, None){
+            Some(x) => {return Some(Formula::Atom(x));},
+            None => {},
+        }
+        match self.get_next_frame(RIFTerm::Var, RIFTerm::Var, RIFTerm::Var) {
+            Some(x) => {return Some(Formula::Frame(x));},
+            None => {},
+        }
+        match self.get_next_subclass(RIFTerm::Var, RIFTerm::Var) {
+            Some(x) => {return Some(Formula::Subclass(x));},
+            None => {},
+        }
+        match self.get_next_member(RIFTerm::Var, RIFTerm::Var) {
+            Some(x) => {return Some(Formula::Member(x));},
+            None => {},
+        }
+        match self.get_next_equal(RIFTerm::Var, RIFTerm::Var) {
+            Some(x) => {return Some(Formula::Equal(x));},
+            None => {},
+        }
+        None
+    }
+}
