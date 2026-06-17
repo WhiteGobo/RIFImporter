@@ -100,7 +100,7 @@ int8_t RIFIGraph_add(
                 const char* object, const char* object_suffix,
                 uint8_t object_type,
                 const char* graphid, uint8_t graph_type,
-                RIFIData* user);
+                RIFIGraph* user);
 
 int64_t RIFIData_send_as_rdf(RIFIData*, TripleHandler* hook, void* hook_data);
 int64_t RIFIData_send_document_as_rdf(RIFIData*, TripleHandler* hook, void* hook_data);

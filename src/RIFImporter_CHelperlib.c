@@ -1,10 +1,11 @@
 #include "RIFImporter.h"
+#include "RIFImporterTermGenerator.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-static char* copy2cstring(const char* input, uint64_t size);
+static char* copy2cstring(const char* input);
 RIFITermList* RIFITermList_clone(const RIFITermList* list);
 RIFITerm* RIFITerm_clone(const RIFITerm* term);
 
@@ -83,30 +84,30 @@ void free_RIFITermList(RIFITermList* x)
 	}
 }
 
-RIFITerm* RIFITerm_new_iri(const char* value, size_t value_length){
+RIFITerm* RIFITerm_new_iri(const char* value){
 	RIFITerm* ret = malloc(sizeof(RIFITerm));
 	if (ret == NULL) return NULL;
 	ret->type = RIF_IRI;
-	ret->value = copy2cstring(value, value_length);
+	ret->value = copy2cstring(value);
 	ret->suffix = NULL;
 	return ret;
 }
-RIFITerm* RIFITerm_new_typedliteral(const char* value, size_t value_length, const char* suffix, size_t suffix_length){
+RIFITerm* RIFITerm_new_typedliteral(const char* value, const char* suffix){
 	RIFITerm* ret = malloc(sizeof(RIFITerm));
 	if (ret == NULL) return NULL;
 	ret->type = RIF_TypedLiteral;
-	ret->value = copy2cstring(value, value_length);
-	ret->suffix = copy2cstring(suffix, suffix_length);
+	ret->value = copy2cstring(value);
+	ret->suffix = copy2cstring(suffix);
 	return ret;
 }
 
-RIFITerm* RIFITerm_new_langliteral(const char* value, size_t value_length, const char* suffix, size_t suffix_length)
+RIFITerm* RIFITerm_new_langliteral(const char* value, const char* suffix)
 {
 	RIFITerm* ret = malloc(sizeof(RIFITerm));
 	if (ret == NULL) return NULL;
 	ret->type = RIF_LangLiteral;
-	ret->value = copy2cstring(value, value_length);
-	ret->suffix = copy2cstring(suffix, suffix_length);
+	ret->value = copy2cstring(value);
+	ret->suffix = copy2cstring(suffix);
 	return ret;
 }
 
@@ -119,20 +120,19 @@ RIFITerm* RIFITerm_new_list(const RIFITermList* list, const RIFITerm* rest){
 	return ret;
 }
 
-RIFITerm* RIFITerm_new_local(const char* value, size_t value_length){
+RIFITerm* RIFITerm_new_local(const char* value){
 	RIFITerm* ret = malloc(sizeof(RIFITerm));
 	if (ret == NULL) return NULL;
 	ret->type = RIF_Local;
-	ret->value = copy2cstring(value, value_length);
+	ret->value = copy2cstring(value);
 	ret->suffix = NULL;
 	return ret;
 }
 
-static char* copy2cstring(const char* input, uint64_t size){
+static char* copy2cstring(const char* input){
 	if (input == NULL) return NULL;
-	char* ret = malloc(size + 1);
-	memcpy(ret, input, size);
-	ret[size] = '\0';
+	char* ret = malloc(strlen(input) + 1);
+	strcpy(ret, input);
 	return ret;
 }
 
@@ -173,26 +173,17 @@ RIFITerm* RIFITerm_clone(const RIFITerm* term){
 	if (term == NULL) return NULL;
 	switch (term->type){
 		case RIF_IRI:
-			return RIFITerm_new_iri(term->value, strlen(term->value));
+			return RIFITerm_new_iri(term->value);
 		case RIF_TypedLiteral:
-			vlen = strlen(term->value);
-			if (term->suffix != NULL) {
-				slen = strlen(term->suffix);
-			} else {
-				slen = 0;
-			}
-			return RIFITerm_new_typedliteral(term->value, vlen,
-							term->suffix, slen);
+			return RIFITerm_new_typedliteral(term->value,
+							term->suffix);
 		case RIF_LangLiteral:
-			vlen = strlen(term->value);
-			slen = strlen(term->suffix);
-			return RIFITerm_new_langliteral(term->value, vlen,
-							term->suffix, slen);
+			return RIFITerm_new_langliteral(term->value,
+							term->suffix);
 		case RIF_List:
 			return RIFITerm_new_list(term->list, term->rest);
 		case RIF_Local:
-			vlen = strlen(term->value);
-			return RIFITerm_new_local(term->value, vlen);
+			return RIFITerm_new_local(term->value);
 		default:
 			return NULL;
 	}

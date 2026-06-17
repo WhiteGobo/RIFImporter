@@ -11,6 +11,7 @@ target_sources(RIFImporter INTERFACE
 	BASE_DIRS include
 	FILES
 	include/RIFImporter.h
+	include/RIFImporterTermGenerator.h
 )
 
 

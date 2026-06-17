@@ -21,11 +21,11 @@ use crate::extern_c_structs::{
 
 
 unsafe extern "C" {
-    pub unsafe fn RIFITerm_new_iri(value: *const c_char, value_length: usize) -> *mut RIFITerm;
-    pub unsafe fn RIFITerm_new_typedliteral(value: *const c_char, value_length: usize, suffix: *const c_char, value_length: usize) -> *mut RIFITerm;
-    pub unsafe fn RIFITerm_new_langliteral(value: *const c_char, value_length: usize, suffix: *const c_char, value_length: usize) -> *mut RIFITerm;
+    pub unsafe fn RIFITerm_new_iri(value: *const c_char) -> *mut RIFITerm;
+    pub unsafe fn RIFITerm_new_typedliteral(value: *const c_char, suffix: *const c_char) -> *mut RIFITerm;
+    pub unsafe fn RIFITerm_new_langliteral(value: *const c_char, suffix: *const c_char) -> *mut RIFITerm;
     pub unsafe fn RIFITermList_append(old: *mut RIFITermList, new: *mut RIFITerm) -> *mut RIFITermList;
-    pub unsafe fn RIFITerm_new_local(value: *const c_char, value_length: usize) -> *mut RIFITerm;
+    pub unsafe fn RIFITerm_new_local(value: *const c_char) -> *mut RIFITerm;
     pub unsafe fn RIFIFrame_new(object: *mut RIFITerm, slotkey: *mut RIFITerm, slotvalue: *mut RIFITerm) -> *mut RIFIFrame;
     pub unsafe fn RIFIAtom_new(op: *mut RIFITerm, args: *mut RIFITermList) -> *mut RIFIAtom;
     pub unsafe fn RIFISubclass_new(sub: *mut RIFITerm, super_: *mut RIFITerm) -> *mut RIFISubclass;
@@ -323,19 +323,17 @@ impl RIFTerm {
     pub fn to_c_term(&self) -> *mut RIFITerm {
         match self {
             RIFTerm::IRI(value) => unsafe {
-                RIFITerm_new_iri(value.as_ptr(), value.count_bytes())
+                RIFITerm_new_iri(value.as_ptr())
             },
             RIFTerm::TypedLiteral(value, suffix) => unsafe {
-                let (c_suffix, suffix_len) = match suffix {
-                    Some(x) => (x.as_ptr(), x.count_bytes()),
-                    None => (ptr::null(), 0),
+                let c_suffix = match suffix {
+                    Some(x) => x.as_ptr(),
+                    None => ptr::null(),
                 };
-                RIFITerm_new_typedliteral(value.as_ptr(), value.count_bytes(),
-                                        c_suffix, suffix_len)
+                RIFITerm_new_typedliteral(value.as_ptr(), c_suffix)
             }
             RIFTerm::LangLiteral(value, suffix) => unsafe {
-                RIFITerm_new_langliteral(value.as_ptr(), value.count_bytes(),
-                                        suffix.as_ptr(), suffix.count_bytes())
+                RIFITerm_new_langliteral(value.as_ptr(), suffix.as_ptr())
             },
             RIFTerm::List(list) => unsafe {
                 let c_list = vec_to_rifitermlist(list);
@@ -344,7 +342,7 @@ impl RIFTerm {
                 ret
             },
             RIFTerm::Local(value) => unsafe {
-                RIFITerm_new_local(value.as_ptr(), value.count_bytes())
+                RIFITerm_new_local(value.as_ptr())
             },
             RIFTerm::Var => ptr::null_mut(),
         }
