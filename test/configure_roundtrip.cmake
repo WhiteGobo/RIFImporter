@@ -1,5 +1,3 @@
-
-
 set(basepath "${CMAKE_CURRENT_SOURCE_DIR}/data")
 read_manifest("${basepath}/manifest.json" testarray length)
 
@@ -27,6 +25,7 @@ foreach(x RANGE 0 ${range})
 			list(APPEND tmp_extras "${tmp_ent}")
 			# cut of "http://www.w3.org/ns/entailment/"
 			string(SUBSTRING "${tmp_ent}" 32 -1 tmp_ent_name)
+
 			set(testname "${basename}${testsuffix}::${tmp_ent_name}")
 			add_test(NAME "${testname}" COMMAND RIFImporter_roundtriptest
 				ARGS
@@ -35,6 +34,9 @@ foreach(x RANGE 0 ${range})
 				${tmp_extras}
 			)
 			set_property(TEST "${testname}" PROPERTY LABELS "RIFImporter" "${testtype}")
+			#Dont do reimports for entailments.
+			#Those tests wont give any more information.
+
 		endforeach()
 	else()
 		set(testname "${basename}${testsuffix}")
@@ -45,6 +47,16 @@ foreach(x RANGE 0 ${range})
 			${extras}
 		)
 		set_property(TEST "${testname}" PROPERTY LABELS "RIFImporter" "${testtype}")
+
+		set(testname2 "${basename}::withReimport::${testsuffix}")
+		add_test(NAME "${testname2}" COMMAND RIFImporter_roundtriptest
+			ARGS
+			"--data" "${basepath}/${premise}"
+			"--query" "${basepath}/${query}"
+			"--reimport-data"
+			${extras}
+		)
+		set_property(TEST "${testname2}" PROPERTY LABELS "RIFImporter" "${testtype}")
 	endif()
 
 

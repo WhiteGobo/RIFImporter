@@ -8,13 +8,17 @@
 const char *datapath;
 const char *querypath;
 bool expect = true;
+bool reimport = false;
 const char* format = "ttl";
 const char* data_entailment = NULL;
 
 static int parse_args(int argc, char *argv[]);
 static char* load_into_memory(const char* filepath);
 int check_query(RIFIData *data, RIFIData *query);
+//in check_query.c
 RIFIData* load_data(const char* filepath, const char* entailment);
+//in reimport_data.c
+RIFIData* reimport_data(RIFIData*);
 
 int main(int argc, char *argv[]){
 	uint8_t err;
@@ -28,6 +32,13 @@ int main(int argc, char *argv[]){
 	if (data == NULL){
 		fprintf(stderr, "Datagraph couldnt be loaded\n");
 		exit(EXIT_FAILURE);
+	}
+	if (reimport){
+		data = reimport_data(data);
+		if(data==NULL){
+			fprintf(stderr, "Reimport of datagraph failed\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 	fprintf(stderr, "Create querygraph\n");
 	query = load_data(querypath, NULL);
@@ -66,6 +77,7 @@ static struct option parse_options[] = {
 	{"data", required_argument, NULL, 'd'},
 	{"query", required_argument, NULL, 'q'},
 	{"expected-failure", no_argument, NULL, 'x'},
+	{"reimport-data", no_argument, NULL, 'R'},
 	{"entailment", required_argument, NULL, 'e'},
         {NULL, 0, NULL, 0}
 };
@@ -92,7 +104,9 @@ static int parse_args(int argc, char *argv[]){
 			case 'e':
 				data_entailment = optarg;
 				break;
-
+			case 'R':
+				reimport = true;
+				break;
 			default:
 				fprintf(stderr, "unrecognized argument\n");
 				err = 1;

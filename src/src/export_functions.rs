@@ -257,6 +257,17 @@ pub extern "C" fn RIFIData_get_next_equal(data: *mut RIFIData, left: *const RIFI
 }
 
 impl Equal {
+    pub fn from_c_equal(equal: *const RIFIEqual) -> Self {
+        unsafe {
+            let left = c2rust_rifterm((*equal).left);
+            let right = c2rust_rifterm((*equal).right);
+            Equal {
+                left: left,
+                right: right,
+            }
+        }
+    }
+
     pub fn to_c_equal(&self) -> Result<*mut RIFIEqual, Error> {
         let ret = unsafe {
             let left = self.left.to_c_term();
@@ -266,7 +277,19 @@ impl Equal {
         Ok(ret)
     }
 }
+
 impl Subclass {
+    pub fn from_c_subclass(subclass: *const RIFISubclass) -> Self {
+        unsafe {
+            let sub = c2rust_rifterm((*subclass).sub_class);
+            let super_ = c2rust_rifterm((*subclass).super_class);
+            Subclass {
+                sub: sub,
+                super_: super_,
+            }
+        }
+    }
+
     pub fn to_c_subclass(&self) -> Result<*mut RIFISubclass, Error> {
         let ret = unsafe {
             let sub = self.sub.to_c_term();
@@ -276,7 +299,19 @@ impl Subclass {
         Ok(ret)
     }
 }
+
 impl Member {
+    pub fn from_c_member(member: *const RIFIMember) -> Self {
+        unsafe {
+            let instance = c2rust_rifterm((*member).instance);
+            let class = c2rust_rifterm((*member).class);
+            Member {
+                instance: instance,
+                class: class,
+            }
+        }
+    }
+
     pub fn to_c_member(&self) -> Result<*mut RIFIMember, Error> {
         let ret = unsafe {
             let class = self.class.to_c_term();
@@ -287,6 +322,19 @@ impl Member {
     }
 }
 impl Frame {
+    pub fn from_c_frame(frame: *const RIFIFrame) -> Self {
+        unsafe {
+            let obj = c2rust_rifterm((*frame).object);
+            let key = c2rust_rifterm((*frame).slotkey);
+            let value = c2rust_rifterm((*frame).slotvalue);
+            Frame {
+                object: obj,
+                slotkey: key,
+                slotvalue: value,
+            }
+        }
+    }
+
     pub fn to_c_frame(&self) -> Result<*mut RIFIFrame, Error> {
         let ret = unsafe {
             let obj = self.object.to_c_term();
@@ -297,7 +345,19 @@ impl Frame {
         Ok(ret)
     }
 }
+
 impl Atom {
+    pub fn from_c_atom(atom: *const RIFIAtom) -> Self {
+        unsafe {
+            let op = c2rust_rifterm((*atom).op);
+            let args = c2rust_riftermlist((*atom).args);
+            Atom {
+                op: op,
+                args: args,
+            }
+        }
+    }
+
     pub fn to_c_atom(&self) -> Result<*mut RIFIAtom, Error> {
         let ret = unsafe {
             let a = self.op.to_c_term();
@@ -318,6 +378,7 @@ fn vec_to_rifitermlist(list: &Vec<RIFTerm>) -> *mut RIFITermList {
     }
     ret
 }
+
 
 impl RIFTerm {
     pub fn to_c_term(&self) -> *mut RIFITerm {
@@ -382,5 +443,92 @@ pub extern "C" fn RIFIData_send_document_as_rdf(
                 1
             },
         }
+    }
+}
+
+
+use crate::rififormulas::RIFIFormulas;
+
+
+#[unsafe(no_mangle)]
+pub extern "C" fn RIFIFormulas_new() -> *mut RIFIFormulas {
+    let mybox = Box::new(RIFIFormulas::new());
+    let config = Box::into_raw(mybox);
+    config
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn RIFIFormulas_to_RIFIData(
+    formulas: *mut RIFIFormulas,
+) -> *mut RIFIData {
+    if formulas.is_null(){
+        return ptr::null_mut();
+    }
+    //consume graph
+    let g: RIFIFormulas = Box::into_inner(unsafe {Box::from_raw(formulas)});
+    let x = g.to_RIFIData();
+
+    let mybox = Box::new(x);
+    let config = Box::into_raw(mybox);
+    config
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn RIFIFormulas_add_atom(
+    formulas: *mut RIFIFormulas, atom: *const RIFIAtom)
+{
+    if formulas.is_null(){return;}
+    if atom.is_null(){return;}
+    unsafe {
+        let rust_atom = Atom::from_c_atom(atom);
+        (*formulas).add_atom(rust_atom);
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn RIFIFormulas_add_frame(
+    formulas: *mut RIFIFormulas, frame: *const RIFIFrame)
+{
+    if formulas.is_null(){return;}
+    if frame.is_null(){return;}
+    unsafe {
+        let rust_frame = Frame::from_c_frame(frame);
+        (*formulas).add_frame(rust_frame);
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn RIFIFormulas_add_subclass(
+    formulas: *mut RIFIFormulas, subclass: *const RIFISubclass)
+{
+    if formulas.is_null(){return;}
+    if subclass.is_null(){return;}
+    unsafe {
+        let rust_subclass = Subclass::from_c_subclass(subclass);
+        (*formulas).add_subclass(rust_subclass);
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn RIFIFormulas_add_member(
+    formulas: *mut RIFIFormulas, member: *const RIFIMember)
+{
+    if formulas.is_null(){return;}
+    if member.is_null(){return;}
+    unsafe {
+        let rust_member = Member::from_c_member(member);
+        (*formulas).add_member(rust_member);
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn RIFIFormulas_add_equal(
+    formulas: *mut RIFIFormulas, equal: *const RIFIEqual)
+{
+    if formulas.is_null(){return;}
+    if equal.is_null(){return;}
+    unsafe {
+        let rust_equal = Equal::from_c_equal(equal);
+        (*formulas).add_equal(rust_equal);
     }
 }

@@ -15,19 +15,35 @@ pub struct RIFITermList {
 }
 
 #[repr(C)]
-pub struct RIFIEqual;
+pub struct RIFIEqual {
+    pub left: *mut RIFITerm,
+    pub right: *mut RIFITerm,
+}
 
 #[repr(C)]
-pub struct RIFIMember;
+pub struct RIFIMember {
+    pub instance: *mut RIFITerm,
+    pub class: *mut RIFITerm,
+}
 
 #[repr(C)]
-pub struct RIFISubclass;
+pub struct RIFISubclass {
+    pub sub_class: *mut RIFITerm,
+    pub super_class: *mut RIFITerm,
+}
 
 #[repr(C)]
-pub struct RIFIFrame;
+pub struct RIFIFrame {
+    pub object: *mut RIFITerm,
+    pub slotkey: *mut RIFITerm,
+    pub slotvalue: *mut RIFITerm,
+}
 
 #[repr(C)]
-pub struct RIFIAtom;
+pub struct RIFIAtom {
+    pub op: *mut RIFITerm,
+    pub args: *mut RIFITermList,
+}
 
 const RIF_TERM_TYPE_IRI: u8 = 0;
 const RIF_TERM_TYPE_TYPEDLITERAL: u8 = 1;

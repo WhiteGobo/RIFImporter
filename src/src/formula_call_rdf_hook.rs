@@ -211,18 +211,18 @@ fn send_typedliteral(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
+    const NULL: *const c_char = ptr::null();
     let csuffix = match suffix {
         Some(x) => x.as_ptr(),
-        None => null,
+        None => NULL,
     };
-    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_CONST, null, URI, null, BNODE, hook_data){
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_CONST, NULL, URI, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
     match hook(id.as_ptr(), id_type, RIF_VALUE,
                 value.as_ptr(), csuffix, TYPEDLITERAL,
-                null, BNODE, hook_data)
+                NULL, BNODE, hook_data)
     {
         0 => {},
         x => {return Err(HookError::retval(x));},
@@ -236,14 +236,14 @@ fn send_langliteral(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
+    const NULL: *const c_char = ptr::null();
     match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_CONST, ptr::null(), URI, ptr::null(), BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
     match hook(id.as_ptr(), id_type, RIF_VALUE,
                 value.as_ptr(), suffix.as_ptr(), LANGLITERAL,
-                null, BNODE, hook_data)
+                NULL, BNODE, hook_data)
     {
         0 => {},
         x => {return Err(HookError::retval(x));},
@@ -257,8 +257,8 @@ fn send_riftermlist(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
-    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_LIST, null, URI, null, BNODE, hook_data){
+    const NULL: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_LIST, NULL, URI, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
@@ -269,7 +269,7 @@ fn send_riftermlist(
     match send_rdftermlist(list_base, BNODE, term, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((x, t)) => {
-            match hook(id.as_ptr(), id_type, RIF_ITEMS, x.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), id_type, RIF_ITEMS, x.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -296,17 +296,17 @@ fn send_var(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
-    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_VAR, null, URI,
-                null, BNODE, hook_data)
+    const NULL: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_VAR, NULL, URI,
+                NULL, BNODE, hook_data)
     {
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
     return Err(HookError::other("send var not implemented"));
     match hook(id.as_ptr(), id_type, RIF_VARNAME,
-                c"x".as_ptr(), null, TYPEDLITERAL,
-                null, BNODE, hook_data)
+                c"x".as_ptr(), NULL, TYPEDLITERAL,
+                NULL, BNODE, hook_data)
     {
         0 => {},
         x => {return Err(HookError::retval(x));},
@@ -320,12 +320,12 @@ fn send_iri(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
-    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_CONST, null, URI, null, BNODE, hook_data){
+    const NULL: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_CONST, NULL, URI, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
-    match hook(id.as_ptr(), id_type, RIF_CONSTIRI, value.as_ptr(), XSD_ANYURI, TYPEDLITERAL, null, BNODE, hook_data){
+    match hook(id.as_ptr(), id_type, RIF_CONSTIRI, value.as_ptr(), XSD_ANYURI, TYPEDLITERAL, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
@@ -338,7 +338,7 @@ fn send_rdftermlist_item(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(), HookError> {
-    const null: *const c_char = ptr::null();
+    const NULL: *const c_char = ptr::null();
     let tnode_in = match extend_cstring(&id, c"_first"){
         Ok(x) => x,
         Err(e) => {return Err(HookError::NulError(e));},
@@ -348,7 +348,7 @@ fn send_rdftermlist_item(
         Ok((x, y)) => (x, y),
         Err(e) => {return Err(e);},
     };
-    match hook(id.as_ptr(), id_type, RDF_FIRST, tnode.as_ptr(), null, ttype, null, BNODE, hook_data)
+    match hook(id.as_ptr(), id_type, RDF_FIRST, tnode.as_ptr(), NULL, ttype, NULL, BNODE, hook_data)
     {
         0 => {},
         x => {return Err(HookError::retval(x));},
@@ -362,7 +362,7 @@ fn send_rdftermlist(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
+    const NULL: *const c_char = ptr::null();
     let mut iter = list.into_iter();
     let x_first = match iter.next() {
         Some(x) => x,
@@ -387,8 +387,8 @@ fn send_rdftermlist(
             Err(e) => {return Err(e);},
         };
         match hook(last.as_ptr(), last_type, RDF_REST,
-                                        current.as_ptr(), null, BNODE,
-                                        null, BNODE, hook_data)
+                                        current.as_ptr(), NULL, BNODE,
+                                        NULL, BNODE, hook_data)
         {
             0 => {},
             x => {return Err(HookError::retval(x));},
@@ -397,7 +397,7 @@ fn send_rdftermlist(
         last_type = BNODE;
     }
     match hook(last.as_ptr(), last_type, RDF_REST,
-                RDF_NIL_CSTR.as_ptr(), null, URI, null, BNODE, hook_data)
+                RDF_NIL_CSTR.as_ptr(), NULL, URI, NULL, BNODE, hook_data)
     {
         0 => {},
         x => {return Err(HookError::retval(x));},
@@ -474,12 +474,12 @@ impl MyContext {
         pred: *const c_char,
         obj: *const c_char, obj_suffix: *const c_char, obj_type: u8,
     ) -> i8 {
-        const null: *const c_char = ptr::null();
+        const NULL: *const c_char = ptr::null();
         (self.hook)(
             subj, subj_type,
             pred,
             obj, obj_suffix, obj_type,
-            null, BNODE, self.hook_data)
+            NULL, BNODE, self.hook_data)
     }
 
     fn send_rdflist(
@@ -487,14 +487,14 @@ impl MyContext {
         id: CString, id_type: u8,
         list: &Vec<(CString, u8)>,
     ) -> Result<(CString, u8), HookError> {
-        const null: *const c_char = ptr::null();
+        const NULL: *const c_char = ptr::null();
         let mut iter = list.into_iter();
         let (first_v, first_t) = match iter.next() {
             Some(x) => x,
             None => {return Ok((RDF_NIL_CSTR.to_owned(), URI));},
         };
         match self.send(id.as_ptr(), id_type, RDF_FIRST,
-                        first_v.as_ptr(), null, *first_t)
+                        first_v.as_ptr(), NULL, *first_t)
         {
             0 => {},
             x => {return Err(HookError::retval(x));},
@@ -504,12 +504,12 @@ impl MyContext {
         
         for (xv, xt) in iter {
             let current = new_bnode(&self.atomic);
-            match self.send(current.as_ptr(), BNODE, RDF_FIRST, xv.as_ptr(), null, *xt)
+            match self.send(current.as_ptr(), BNODE, RDF_FIRST, xv.as_ptr(), NULL, *xt)
             {
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
-            match self.send(last.as_ptr(), last_type, RDF_REST, current.as_ptr(), null, BNODE)
+            match self.send(last.as_ptr(), last_type, RDF_REST, current.as_ptr(), NULL, BNODE)
             {
                 0 => {},
                 x => {return Err(HookError::retval(x));},
@@ -517,7 +517,7 @@ impl MyContext {
             last = current;
             last_type = BNODE;
         }
-        match self.send(last.as_ptr(), last_type, RDF_REST, RDF_NIL_CSTR.as_ptr(), null, URI)
+        match self.send(last.as_ptr(), last_type, RDF_REST, RDF_NIL_CSTR.as_ptr(), NULL, URI)
         {
             0 => {},
             x => {return Err(HookError::retval(x));},
@@ -537,8 +537,8 @@ fn send_atom(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    let null: *const c_char = ptr::null();
-    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_ATOM, null, URI, null, BNODE, hook_data){
+    let NULL: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_ATOM, NULL, URI, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
@@ -550,7 +550,7 @@ fn send_atom(
     match send_term(op_base, BNODE, &atom.op, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((op, t)) => {
-            match hook(id.as_ptr(), BNODE, RIF_OP, op.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), BNODE, RIF_OP, op.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -566,7 +566,7 @@ fn send_atom(
     match send_rdftermlist(args_base, BNODE, &atom.args, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((args, t)) => {
-            match hook(id.as_ptr(), BNODE, RIF_ARGS, args.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), BNODE, RIF_ARGS, args.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -581,8 +581,8 @@ fn send_frame(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
-    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_FRAME, null, URI, null, BNODE, hook_data){
+    const NULL: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_FRAME, NULL, URI, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
@@ -593,7 +593,7 @@ fn send_frame(
     match send_term(obj_base, BNODE, &frame.object, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((obj, t)) => {
-            match hook(id.as_ptr(), BNODE, RIF_OBJECT, obj.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), BNODE, RIF_OBJECT, obj.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -611,16 +611,16 @@ fn send_frame(
         Ok(x) => (x, BNODE),
         Err(_) => {return Err(HookError::internal(0));},
     };
-    match hook(id.as_ptr(), id_type, RIF_SLOTS, slots.as_ptr(), null, slots_type, null, BNODE, hook_data){
+    match hook(id.as_ptr(), id_type, RIF_SLOTS, slots.as_ptr(), NULL, slots_type, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
-    match hook(slot.as_ptr(), slots_type, RDF_FIRST, slot.as_ptr(), null, slottype, null, BNODE, hook_data)
+    match hook(slot.as_ptr(), slots_type, RDF_FIRST, slot.as_ptr(), NULL, slottype, NULL, BNODE, hook_data)
     {
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
-    match hook(slot.as_ptr(), slots_type, RDF_REST, RDF_NIL_CSTR.as_ptr(), null, URI, null, BNODE, hook_data)
+    match hook(slot.as_ptr(), slots_type, RDF_REST, RDF_NIL_CSTR.as_ptr(), NULL, URI, NULL, BNODE, hook_data)
     {
         0 => {},
         x => {return Err(HookError::retval(x));},
@@ -634,7 +634,7 @@ fn send_slot(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
+    const NULL: *const c_char = ptr::null();
     let val_base = match extend_cstring(&id, c"_val"){
         Ok(x) => x,
         Err(_) => {return Err(HookError::internal(5));},
@@ -642,7 +642,7 @@ fn send_slot(
     match send_term(val_base, BNODE, val, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((x, t)) => {
-            match hook(id.as_ptr(), id_type, RIF_SLOTVALUE, x.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), id_type, RIF_SLOTVALUE, x.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -655,7 +655,7 @@ fn send_slot(
     match send_term(key_base, BNODE, key, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((x, t)) => {
-            match hook(id.as_ptr(), id_type, RIF_SLOTKEY, x.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), id_type, RIF_SLOTKEY, x.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -671,8 +671,8 @@ fn send_subclass(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
-    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_SUBCLASS, null, URI, null, BNODE, hook_data){
+    const NULL: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_SUBCLASS, NULL, URI, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
@@ -683,7 +683,7 @@ fn send_subclass(
     match send_term(sub_base, BNODE, &subclass.sub, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((obj, t)) => {
-            match hook(id.as_ptr(), BNODE, RIF_SUB, obj.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), BNODE, RIF_SUB, obj.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -696,7 +696,7 @@ fn send_subclass(
     match send_term(super_base, BNODE, &subclass.super_, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((obj, t)) => {
-            match hook(id.as_ptr(), BNODE, RIF_SUPER, obj.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), BNODE, RIF_SUPER, obj.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -711,8 +711,8 @@ fn send_member(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
-    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_MEMBER, null, URI, null, BNODE, hook_data){
+    const NULL: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_MEMBER, NULL, URI, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
@@ -723,7 +723,7 @@ fn send_member(
     match send_term(inst_base, BNODE, &member.instance, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((obj, t)) => {
-            match hook(id.as_ptr(), BNODE, RIF_INSTANCE, obj.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), BNODE, RIF_INSTANCE, obj.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -736,7 +736,7 @@ fn send_member(
     match send_term(class_base, BNODE, &member.class, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((obj, t)) => {
-            match hook(id.as_ptr(), BNODE, RIF_CLASS, obj.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), BNODE, RIF_CLASS, obj.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -751,8 +751,8 @@ fn send_equal(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    const null: *const c_char = ptr::null();
-    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_EQUAL, null, URI, null, BNODE, hook_data){
+    const NULL: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_EQUAL, NULL, URI, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
@@ -763,7 +763,7 @@ fn send_equal(
     match send_term(left_base, BNODE, &equal.left, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((obj, t)) => {
-            match hook(id.as_ptr(), BNODE, RIF_LEFT, obj.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), BNODE, RIF_LEFT, obj.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }
@@ -776,7 +776,7 @@ fn send_equal(
     match send_term(right_base, BNODE, &equal.right, hook, hook_data) {
         Err(e) => {return Err(e);},
         Ok((obj, t)) => {
-            match hook(id.as_ptr(), BNODE, RIF_RIGHT, obj.as_ptr(), null, t, null, BNODE, hook_data){
+            match hook(id.as_ptr(), BNODE, RIF_RIGHT, obj.as_ptr(), NULL, t, NULL, BNODE, hook_data){
                 0 => {},
                 x => {return Err(HookError::retval(x));},
             }

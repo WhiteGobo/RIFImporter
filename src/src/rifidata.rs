@@ -1,9 +1,17 @@
-use crate::genterms::BNodeMap;
 use std::ffi::CString;
 use std::collections::HashMap;
-use oxrdf::{NamedNodeRef, TermRef, NamedOrBlankNodeRef, BlankNode, NamedOrBlankNode, Term, NamedNode, LiteralRef, Literal};
-//use crate::entailment_map::Entailment;
-use crate::interpreter::{RIFInterpreter, SimpleInterpreter, RDFInterpreter, RDFSInterpreter, DInterpreter, OWLRDFBasedInterpreter, OWLDirectInterpreter, MyInterpreter};
+use oxrdf::{
+    NamedNodeRef, TermRef, NamedOrBlankNodeRef, BlankNode, NamedOrBlankNode,
+    Term, NamedNode, LiteralRef, Literal, Graph,
+};
+use crate::genterms::BNodeMap;
+use crate::entailment_map::Entailment;
+use crate::interpreter::{
+    RIFInterpreter, SimpleInterpreter, RDFInterpreter, RDFSInterpreter,
+    DInterpreter, OWLRDFBasedInterpreter, OWLDirectInterpreter, MyInterpreter,
+};
+use crate::rififormulas::RIFIFormulas;
+use std::iter::zip;
 
 #[derive(Debug, PartialEq)]
 pub enum RIFTerm {
@@ -72,7 +80,6 @@ pub enum Interpreter {
     RIF(RIFInterpreter),
     OWLDirect(OWLDirectInterpreter),
 }
-*/
 
 
 pub struct RIFIDataOld {
@@ -80,7 +87,6 @@ pub struct RIFIDataOld {
     interpreter: Box<dyn MyInterpreter>,
 }
 
-use crate::entailment_map::Entailment;
 
 impl Iterator for RIFIDataOld {
     type Item = Formula;
@@ -185,6 +191,7 @@ impl BNodeMap for &mut RIFIDataOld {
         }
     }
 }
+*/
 
 impl From<LiteralRef<'_>> for RIFTerm {
     fn from(x: LiteralRef<'_>) -> Self {
@@ -289,25 +296,25 @@ pub enum RIFIData {
     D(DInterpreter),
     OWLRDFBased(OWLRDFBasedInterpreter),
     OWLDirect(OWLDirectInterpreter),
+    Formulas(RIFIFormulas),
 }
 
-use oxrdf::Graph;
 
 impl RIFIData {
     pub fn from_graph(graph: Graph, entailment: Option<&str>) -> Option<Self> {
-        use RIFIData as RD;
-        use crate::entailment_map::Entailment::{Simple, RDF, RDFS, D,
-                                            OWLRDFBased, RIF, OWLDirect};
+        use crate::entailment_map::Entailment::{
+            Simple, RDF, RDFS, D, OWLRDFBased, RIF, OWLDirect,
+        };
         Some(match entailment {
-            None => RD::RIF(RIFInterpreter::new(graph)),
+            None => Self::RIF(RIFInterpreter::new(graph)),
             Some(ent) => match Entailment::from(ent) {
-                Some(RIF) => RD::RIF(RIFInterpreter::new(graph)),
-                Some(Simple) => RD::Simple(SimpleInterpreter::new(graph)),
-                Some(RDF) => RD::RDF(RDFInterpreter::new(graph)),
-                Some(RDFS) => RD::RDFS(RDFSInterpreter::new(graph)),
-                Some(D) => RD::D(DInterpreter::new(graph)),
-                Some(OWLRDFBased) => RD::OWLRDFBased(OWLRDFBasedInterpreter::new(graph)),
-                Some(OWLDirect) => RD::OWLDirect(OWLDirectInterpreter::new(graph)),
+                Some(RIF) => Self::RIF(RIFInterpreter::new(graph)),
+                Some(Simple) => Self::Simple(SimpleInterpreter::new(graph)),
+                Some(RDF) => Self::RDF(RDFInterpreter::new(graph)),
+                Some(RDFS) => Self::RDFS(RDFSInterpreter::new(graph)),
+                Some(D) => Self::D(DInterpreter::new(graph)),
+                Some(OWLRDFBased) => Self::OWLRDFBased(OWLRDFBasedInterpreter::new(graph)),
+                Some(OWLDirect) => Self::OWLDirect(OWLDirectInterpreter::new(graph)),
                 None => {return None},
             }
         })
@@ -316,73 +323,73 @@ impl RIFIData {
     pub fn get_next_atom(&mut self, op: RIFTerm, args: Option<Vec<RIFTerm>>,
         ) -> Option<Atom>
     {
-        use RIFIData::{Simple, RIF, RDF, RDFS, D, OWLRDFBased, OWLDirect};
         match self {
-            Simple(x) => x.get_next_atom(op, args),
-            RIF(x) => x.get_next_atom(op, args),
-            RDF(x) => x.get_next_atom(op, args),
-            RDFS(x) => x.get_next_atom(op, args),
-            D(x) => x.get_next_atom(op, args),
-            OWLRDFBased(x) => x.get_next_atom(op, args),
-            OWLDirect(x) => x.get_next_atom(op, args),
+            Self::Simple(x) => x.get_next_atom(op, args),
+            Self::RIF(x) => x.get_next_atom(op, args),
+            Self::RDF(x) => x.get_next_atom(op, args),
+            Self::RDFS(x) => x.get_next_atom(op, args),
+            Self::D(x) => x.get_next_atom(op, args),
+            Self::OWLRDFBased(x) => x.get_next_atom(op, args),
+            Self::OWLDirect(x) => x.get_next_atom(op, args),
+            Self::Formulas(x) => x.get_next_atom(op, args),
         }
     }
 
     pub fn get_next_frame(&mut self, object: RIFTerm, slotkey: RIFTerm, slotvalue: RIFTerm,
         ) -> Option<Frame>
     {
-        use RIFIData::{Simple, RIF, RDF, RDFS, D, OWLRDFBased, OWLDirect};
         match self {
-            Simple(x) => x.get_next_frame(object, slotkey, slotvalue),
-            RIF(x) => x.get_next_frame(object, slotkey, slotvalue),
-            RDF(x) => x.get_next_frame(object, slotkey, slotvalue),
-            RDFS(x) => x.get_next_frame(object, slotkey, slotvalue),
-            D(x) => x.get_next_frame(object, slotkey, slotvalue),
-            OWLRDFBased(x) => x.get_next_frame(object, slotkey, slotvalue),
-            OWLDirect(x) => x.get_next_frame(object, slotkey, slotvalue),
+            Self::Simple(x) => x.get_next_frame(object, slotkey, slotvalue),
+            Self::RIF(x) => x.get_next_frame(object, slotkey, slotvalue),
+            Self::RDF(x) => x.get_next_frame(object, slotkey, slotvalue),
+            Self::RDFS(x) => x.get_next_frame(object, slotkey, slotvalue),
+            Self::D(x) => x.get_next_frame(object, slotkey, slotvalue),
+            Self::OWLRDFBased(x) => x.get_next_frame(object, slotkey, slotvalue),
+            Self::OWLDirect(x) => x.get_next_frame(object, slotkey, slotvalue),
+            Self::Formulas(x) => x.get_next_frame(object, slotkey, slotvalue),
         }
     }
 
     pub fn get_next_subclass(&mut self, sub: RIFTerm, super_: RIFTerm,
         ) -> Option<Subclass>
     {
-        use RIFIData::{Simple, RIF, RDF, RDFS, D, OWLRDFBased, OWLDirect};
         match self {
-            Simple(x) => x.get_next_subclass(sub, super_),
-            RIF(x) => x.get_next_subclass(sub, super_),
-            RDF(x) => x.get_next_subclass(sub, super_),
-            RDFS(x) => x.get_next_subclass(sub, super_),
-            D(x) => x.get_next_subclass(sub, super_),
-            OWLRDFBased(x) => x.get_next_subclass(sub, super_),
-            OWLDirect(x) => x.get_next_subclass(sub, super_),
+            Self::Simple(x) => x.get_next_subclass(sub, super_),
+            Self::RIF(x) => x.get_next_subclass(sub, super_),
+            Self::RDF(x) => x.get_next_subclass(sub, super_),
+            Self::RDFS(x) => x.get_next_subclass(sub, super_),
+            Self::D(x) => x.get_next_subclass(sub, super_),
+            Self::OWLRDFBased(x) => x.get_next_subclass(sub, super_),
+            Self::OWLDirect(x) => x.get_next_subclass(sub, super_),
+            Self::Formulas(x) => x.get_next_subclass(sub, super_),
         }
     }
     pub fn get_next_member(&mut self, instance: RIFTerm, class: RIFTerm,
         ) -> Option<Member>
     {
-        use RIFIData::{Simple, RIF, RDF, RDFS, D, OWLRDFBased, OWLDirect};
         match self {
-            Simple(x) => x.get_next_member(instance, class),
-            RIF(x) => x.get_next_member(instance, class),
-            RDF(x) => x.get_next_member(instance, class),
-            RDFS(x) => x.get_next_member(instance, class),
-            D(x) => x.get_next_member(instance, class),
-            OWLRDFBased(x) => x.get_next_member(instance, class),
-            OWLDirect(x) => x.get_next_member(instance, class),
+            Self::Simple(x) => x.get_next_member(instance, class),
+            Self::RIF(x) => x.get_next_member(instance, class),
+            Self::RDF(x) => x.get_next_member(instance, class),
+            Self::RDFS(x) => x.get_next_member(instance, class),
+            Self::D(x) => x.get_next_member(instance, class),
+            Self::OWLRDFBased(x) => x.get_next_member(instance, class),
+            Self::OWLDirect(x) => x.get_next_member(instance, class),
+            Self::Formulas(x) => x.get_next_member(instance, class),
         }
     }
     pub fn get_next_equal(&mut self, left: RIFTerm, right: RIFTerm,
         ) -> Option<Equal>
     {
-        use RIFIData::{Simple, RIF, RDF, RDFS, D, OWLRDFBased, OWLDirect};
         match self {
-            Simple(x) => x.get_next_equal(left, right),
-            RIF(x) => x.get_next_equal(left, right),
-            RDF(x) => x.get_next_equal(left, right),
-            RDFS(x) => x.get_next_equal(left, right),
-            D(x) => x.get_next_equal(left, right),
-            OWLRDFBased(x) => x.get_next_equal(left, right),
-            OWLDirect(x) => x.get_next_equal(left, right),
+            Self::Simple(x) => x.get_next_equal(left, right),
+            Self::RIF(x) => x.get_next_equal(left, right),
+            Self::RDF(x) => x.get_next_equal(left, right),
+            Self::RDFS(x) => x.get_next_equal(left, right),
+            Self::D(x) => x.get_next_equal(left, right),
+            Self::OWLRDFBased(x) => x.get_next_equal(left, right),
+            Self::OWLDirect(x) => x.get_next_equal(left, right),
+            Self::Formulas(x) => x.get_next_equal(left, right),
         }
     }
 }
@@ -412,5 +419,37 @@ impl Iterator for RIFIData {
             None => {},
         }
         None
+    }
+}
+
+pub fn list_equal_or_valid_for_rifterm(
+    query: &Vec<RIFTerm>, target: &Vec<RIFTerm>,
+) -> bool {
+    if query.len() != target.len() {return false;}
+    for (y1, y2) in zip(query, target) {
+        if !y1.equal_or_valid_for(y2) {
+            return false;
+        }
+    }
+    true
+}
+
+impl RIFTerm {
+    pub fn equal_or_valid_for(&self, target: &RIFTerm) -> bool {
+        match (self, target) {
+            (Self::Var, _) => true,
+            (Self::IRI(x1), Self::IRI(x2)) => x1 == x2,
+            (Self::TypedLiteral(x1, y1), Self::TypedLiteral(x2, y2)) => {
+                x1 == x2 && y1 == y2
+            },
+            (Self::LangLiteral(x1, y1), Self::LangLiteral(x2, y2)) => {
+                x1 == x2 && y1 == y2
+            },
+            (Self::List(x1), Self::List(x2)) => {
+                list_equal_or_valid_for_rifterm(x1, x2)
+            },
+            (Self::Local(x1), Self::Local(x2)) => x1 == x2,
+            _ => false,
+        }
     }
 }

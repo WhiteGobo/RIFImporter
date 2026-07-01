@@ -3,6 +3,7 @@
 pub mod export_functions;
 mod rifidata;
 mod rifigraph;
+mod rififormulas;
 mod genterms;
 mod entailment_map;
 mod interpreter;
