@@ -11,3 +11,4 @@ mod vocab;
 mod rdfhelper;
 mod extern_c_structs;
 mod formula_call_rdf_hook;
+mod error;

@@ -1,5 +1,6 @@
 use oxrdf::{NamedNodeRef, BlankNode, GraphName, NamedOrBlankNode, Term, Literal, NamedNode};
 use std::ffi::{c_char, CStr};
+use crate::error::GenTermError;
 
 pub trait BNodeMap {
     fn get_bnode(self, key: &str) -> BlankNode;
@@ -33,20 +34,20 @@ pub fn generate_Term(
     value: *const c_char, value_suffix: *const c_char,
     value_type: u8,
     map: impl BNodeMap,
-    ) -> Result<Term, ()>
+    ) -> Result<Term, GenTermError>
 {
     if value.is_null(){
-        return Err(());
+        return Err(GenTermError::other("Term needs non NULL value"));
     }
     let obj = match unsafe{ CStr::from_ptr(value) }.to_str() {
         Ok(x) => x,
-        Err(_) => {return Err(());},
+        Err(e) => {return Err(e.into());},
     };
     match value_type {
         0 => {
             match NamedNode::new(obj){
                 Ok(x) => Ok(x.into()),
-                Err(_) => Err(()),
+                Err(e) => Err(e.into()),
             }
         },
         1 => Ok(map.get_bnode(obj).into()),
@@ -58,9 +59,9 @@ pub fn generate_Term(
                 let suf_iri = match suf_c.to_str() {
                     Ok(suf) => match NamedNode::new(suf) {
                         Ok(x) => x,
-                        Err(_) => {return Err(());},
+                        Err(e) => {return Err(e.into());},
                     },
-                    Err(_) => {return Err(());},
+                    Err(e) => {return Err(e.into());},
                 };
                 Ok(Literal::new_typed_literal(obj, suf_iri).into())
             }
@@ -72,12 +73,12 @@ pub fn generate_Term(
                 let suf_c = unsafe{ CStr::from_ptr(value_suffix) };
                 let suf = match suf_c.to_str() {
                     Ok(x) => x,
-                    Err(_) => {return Err(());},
+                    Err(e) => {return Err(e.into());},
                 };
                 Ok(Literal::new_language_tagged_literal_unchecked(obj, suf).into())
             }
         }
-        _ => Err(())
+        _ => Err(GenTermError::other("Unknown Term type specified (0-3)"))
     }
 }
 

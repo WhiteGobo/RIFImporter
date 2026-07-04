@@ -99,7 +99,10 @@ pub extern "C" fn RIFIGraph_add(
             object, object_suffix, object_type, &mut (*data))
         {
             Ok(x) => x,
-            Err(_) => {eprintln!("Failed to translate object"); return -4;},
+            Err(e) => {
+                eprintln!("Failed to translate object with: {}", e);
+                return -4;
+            },
         };
         (*data).add(subj.as_ref(), pred, obj.as_ref());
     }
