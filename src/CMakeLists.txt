@@ -12,6 +12,7 @@ target_sources(RIFImporter INTERFACE
 	FILES
 	include/RIFImporter.h
 	include/RIFImporterTermGenerator.h
+	include/RIFImporterDebug.h
 )
 
 

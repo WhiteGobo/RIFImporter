@@ -235,3 +235,80 @@ RIFIEqual* RIFIEqual_new(RIFITerm* left, RIFITerm* right){
 	ret->right = right;
 	return ret;
 }
+
+
+
+#include "RIFImporterDebug.h"
+
+void fprintf_RIFITerm(FILE* f, RIFITerm* term){
+	if (term == NULL){
+		fprintf(f, "(NULL)");
+		return;
+	}
+	switch(term->type){
+		case RIF_IRI:
+			fprintf(f, "<%s>", term->value);
+			break;
+		case RIF_TypedLiteral:
+			fprintf(f, "\"%s\"^^<%s>", term->value, term->suffix);
+			break;
+		case RIF_LangLiteral:
+			fprintf(f, "\"%s\"@%s", term->value, term->suffix);
+			break;
+		case RIF_List:
+			fprintf(f, "(");
+			fprintf_RIFITermList(f, term->list);
+			if (term->rest != NULL){
+				fprintf(f, " | ");
+				fprintf_RIFITerm(f, term->rest);
+			}
+			fprintf(f, ")");
+			break;
+		case RIF_Local:
+			fprintf(f, "local(%s)", term->value);
+			break;
+	}
+}
+
+void fprintf_RIFITermList(FILE* f, RIFITermList* list){
+	if (list == NULL) return;
+	fprintf_RIFITerm(f, list->first);
+	for (RIFITermList* tmp = list->rest; tmp != NULL; tmp = tmp->rest){
+		fprintf(f, " ");
+		fprintf_RIFITerm(f, tmp->first);
+	}
+}
+
+void fprintf_RIFIAtom(FILE* f, RIFIAtom* atom){
+	fprintf_RIFITerm(f, atom->op);
+	fprintf(f, "(");
+	fprintf_RIFITermList(f, atom->args);
+	fprintf(f, ")");
+}
+
+void fprintf_RIFIFrame(FILE* f, RIFIFrame* frame){
+	fprintf_RIFITerm(f, frame->object);
+	fprintf(f, "[");
+	fprintf_RIFITerm(f, frame->slotkey);
+	fprintf(f, " -> ");
+	fprintf_RIFITerm(f, frame->slotvalue);
+	fprintf(f, "]");
+}
+
+void fprintf_RIFISubclass(FILE* f, RIFISubclass* x){
+	fprintf_RIFITerm(f, x->sub);
+	fprintf(f, "##");
+	fprintf_RIFITerm(f, x->super);
+}
+
+void fprintf_RIFIMember(FILE* f, RIFIMember* x){
+	fprintf_RIFITerm(f, x->instance);
+	fprintf(f, "#");
+	fprintf_RIFITerm(f, x->class);
+}
+
+void fprintf_RIFIEqual(FILE* f, RIFIEqual* x){
+	fprintf_RIFITerm(f, x->left);
+	fprintf(f, "=");
+	fprintf_RIFITerm(f, x->right);
+}
