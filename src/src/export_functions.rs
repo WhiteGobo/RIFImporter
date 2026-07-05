@@ -442,7 +442,7 @@ pub extern "C" fn RIFIData_send_document_as_rdf(
         match (*data).send_document_as_rdf(hook, hook_data) {
             Ok(_) => 0,
             Err(e) => {
-                eprintln!("RIFIData_send_as_rdf failed with: {}", e);
+                eprintln!("RIFIData_send_document as_rdf failed with: {}", e);
                 1
             },
         }
