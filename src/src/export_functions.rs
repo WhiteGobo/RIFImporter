@@ -20,8 +20,10 @@ use crate::extern_c_structs::{
 };
 
 
+///declared in `RIFImporterTermGenerator.h`
 unsafe extern "C" {
     pub unsafe fn RIFITerm_new_iri(value: *const c_char) -> *mut RIFITerm;
+    pub unsafe fn RIFITerm_new_variable(value: *const c_char) -> *mut RIFITerm;
     pub unsafe fn RIFITerm_new_typedliteral(value: *const c_char, suffix: *const c_char) -> *mut RIFITerm;
     pub unsafe fn RIFITerm_new_langliteral(value: *const c_char, suffix: *const c_char) -> *mut RIFITerm;
     pub unsafe fn RIFITermList_append(old: *mut RIFITermList, new: *mut RIFITerm) -> *mut RIFITermList;
@@ -145,6 +147,17 @@ pub extern "C" fn RIFIData_get_next_atom_any_args(data: *mut RIFIData, op: *cons
     }
 }
 
+fn replace_vars(input: Vec<RIFTerm>) -> Vec<RIFTerm>{
+    let mut output = Vec::new();
+    for x in input {
+        output.push(match x {
+            RIFTerm::Variable(_) => RIFTerm::Var,
+            _ => x,
+        });
+    }
+    output
+}
+
 #[unsafe(no_mangle)]
 pub extern "C" fn RIFIData_get_next_atom(
     data: *mut RIFIData, op: *const RIFITerm, args: *const RIFITermList,
@@ -152,17 +165,19 @@ pub extern "C" fn RIFIData_get_next_atom(
 {
     if data.is_null() {return ptr::null_mut();}
     let op_q = c2rust_rifterm(op);
-    let args_q = c2rust_riftermlist(args);
+    let args_q = replace_vars(c2rust_riftermlist(args));
     let new_atom = unsafe {
         match (*data).get_next_atom(op_q, Some(args_q)){
             Some(x) => x,
-            None => {return ptr::null_mut();},
+            None => {
+                return ptr::null_mut();
+            },
         }
     };
     match new_atom.to_c_atom() {
         Ok(x) => x,
         Err(e) => {
-            eprintln!("internal error {}", e);
+            eprintln!("RIFImporter: internal error {}", e);
             ptr::null_mut()
         },
     }
@@ -203,7 +218,6 @@ pub extern "C" fn RIFIData_get_next_subclass(data: *mut RIFIData, sub: *const RI
             None => {return ptr::null_mut();},
         }
     };
-    eprintln!("return subclass: {:?}", new_subclass);
     match new_subclass.to_c_subclass() {
         Ok(x) => x,
         Err(e) => {
@@ -226,7 +240,6 @@ pub extern "C" fn RIFIData_get_next_member(data: *mut RIFIData, instance: *const
             None => {return ptr::null_mut();},
         }
     };
-    eprintln!("return member: {:?}", new_member);
     match new_member.to_c_member() {
         Ok(x) => x,
         Err(e) => {
@@ -249,7 +262,6 @@ pub extern "C" fn RIFIData_get_next_equal(data: *mut RIFIData, left: *const RIFI
             None => {return ptr::null_mut();},
         }
     };
-    eprintln!("return equal: {:?}", new_equal);
     match new_equal.to_c_equal() {
         Ok(x) => x,
         Err(e) => {
@@ -409,6 +421,9 @@ impl RIFTerm {
                 RIFITerm_new_local(value.as_ptr())
             },
             RIFTerm::Var => ptr::null_mut(),
+            RIFTerm::Variable(value) => unsafe {
+                RIFITerm_new_variable(value.as_ptr())
+            }
         }
     }
 }

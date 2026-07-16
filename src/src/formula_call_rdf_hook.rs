@@ -194,7 +194,7 @@ fn send_term(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
-    use RIFTerm::{IRI, TypedLiteral, LangLiteral, List, Local, Var};
+    use RIFTerm::{IRI, TypedLiteral, LangLiteral, List, Local, Var, Variable};
     match term {
         IRI(x) => send_iri(id, id_type, x, hook, hook_data),
         TypedLiteral(x, y) => send_typedliteral(id, id_type, x, y, hook, hook_data),
@@ -202,6 +202,7 @@ fn send_term(
         List(l) => send_riftermlist(id, id_type, l, hook, hook_data),
         Local(x) => send_local(id, id_type, x, hook, hook_data),
         Var => send_var(id, id_type, hook, hook_data),
+        Variable(x) => send_variable(id, id_type, x, hook, hook_data),
     }
 }
 
@@ -326,6 +327,24 @@ fn send_iri(
         x => {return Err(HookError::retval(x));},
     }
     match hook(id.as_ptr(), id_type, RIF_CONSTIRI, value.as_ptr(), XSD_ANYURI, TYPEDLITERAL, NULL, BNODE, hook_data){
+        0 => {},
+        x => {return Err(HookError::retval(x));},
+    }
+    Ok((id, id_type))
+}
+
+fn send_variable(
+    id: CString, id_type: u8,
+    value: &CStr,
+    hook: TripleHandler,
+    hook_data: *mut c_void,
+) -> Result<(CString, u8), HookError> {
+    const NULL: *const c_char = ptr::null();
+    match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_VAR, NULL, URI, NULL, BNODE, hook_data){
+        0 => {},
+        x => {return Err(HookError::retval(x));},
+    }
+    match hook(id.as_ptr(), id_type, RIF_VARNAME, value.as_ptr(), XSD_ANYURI, TYPEDLITERAL, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }

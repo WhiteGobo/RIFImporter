@@ -43,6 +43,7 @@ typedef enum {
 	RIF_LangLiteral = 2,
 	RIF_List = 3,
 	RIF_Local = 4,
+	RIF_Variable = 5,
 } RIFITermType;
 
 typedef struct rifiGraph RIFIGraph;

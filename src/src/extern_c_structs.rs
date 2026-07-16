@@ -45,11 +45,23 @@ pub struct RIFIAtom {
     pub args: *mut RIFITermList,
 }
 
+/// In enum RIFITermType. See RIFImporter.h
 const RIF_TERM_TYPE_IRI: u8 = 0;
+
+/// In enum RIFITermType. See RIFImporter.h
 const RIF_TERM_TYPE_TYPEDLITERAL: u8 = 1;
+
+/// In enum RIFITermType. See RIFImporter.h
 const RIF_TERM_TYPE_LANGLITERAL: u8 = 2;
+
+/// In enum RIFITermType. See RIFImporter.h
 const RIF_TERM_TYPE_LIST: u8 = 3;
+
+/// In enum RIFITermType. See RIFImporter.h
 const RIF_TERM_TYPE_LOCAL: u8 = 4;
+
+/// In enum RIFITermType. See RIFImporter.h
+const RIF_TERM_TYPE_VARIABLE: u8 = 5;
 
 
 fn c2rust_convert_iri(cterm: *const RIFITerm) -> Option<RIFTerm>{
@@ -57,6 +69,28 @@ fn c2rust_convert_iri(cterm: *const RIFITerm) -> Option<RIFTerm>{
         if (*cterm).value.is_null() {return None;}
         let value = CStr::from_ptr((*cterm).value).to_owned();
         Some(RIFTerm::IRI(value))
+    }
+}
+
+fn c2rust_convert_local(cterm: *const RIFITerm) -> Option<RIFTerm>{
+    unsafe {
+        if (*cterm).value.is_null() {return None;}
+        let value = match CStr::from_ptr((*cterm).value).to_str(){
+            Ok(x) => x,
+            Err(e) => {return None;},
+        };
+        match RIFTerm::get_local(value){
+            Ok(x) => Some(x),
+            Err(e) => None,
+        }
+    }
+}
+
+fn c2rust_convert_variable(cterm: *const RIFITerm) -> Option<RIFTerm>{
+    unsafe {
+        if (*cterm).value.is_null() {return None;}
+        let value = CStr::from_ptr((*cterm).value).to_owned();
+        Some(RIFTerm::Variable(value))
     }
 }
 
@@ -109,7 +143,8 @@ pub fn c2rust_rifterm(cterm: *const RIFITerm) -> RIFTerm {
             RIF_TERM_TYPE_TYPEDLITERAL => c2rust_convert_typedliteral(cterm),
             RIF_TERM_TYPE_LANGLITERAL => c2rust_convert_langliteral(cterm),
             RIF_TERM_TYPE_LIST => c2rust_convert_list(cterm),
-            RIF_TERM_TYPE_LOCAL => Some(RIFTerm::Var),
+            RIF_TERM_TYPE_LOCAL => c2rust_convert_local(cterm),
+            RIF_TERM_TYPE_VARIABLE => c2rust_convert_variable(cterm),
             _ => None,
         }
     };

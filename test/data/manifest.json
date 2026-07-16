@@ -87,6 +87,12 @@
 	    "entailment": ["http://www.w3.org/ns/entailment/RIF"],
             "@type": "PositiveEntailmentTest"
         }, {
+            "name": "data15",
+            "purpose": "test Local Constant with variable query",
+            "premise": "data15-premise.ttl",
+	    "query": "data15-query.ttl",
+            "@type": "PositiveEntailmentTest"
+        }, {
             "name": "data20",
             "purpose": "test triple entailment for given entailment",
             "premise": "data20-premise.ttl",

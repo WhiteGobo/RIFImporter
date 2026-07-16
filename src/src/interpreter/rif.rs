@@ -317,7 +317,10 @@ impl MyInterpreter for RIFInterpreter {
                 None => Vec::new(),
                 Some(n) => match riftermlist_to_vec(&self.data, n){
                     Some(x) => x,
-                    None => {continue;},
+                    None => {
+                        eprintln!("RIFImporter: Broken Data. Cant translate atom args.");
+                        continue;
+                    },
                 },
             };
             match args {
@@ -329,9 +332,8 @@ impl MyInterpreter for RIFInterpreter {
                 _ => {},
             }
             self.removed.push(n.clone());
-            return Some(
-                    Atom{op: found_op, args: found_args}
-                    );
+            let ret = Atom{op: found_op, args: found_args};
+            return Some(ret);
         }
         None
     }

@@ -5,6 +5,7 @@
 #include <cwalk.h>
 #include <Mime2Rdf4C.h>
 #include "printhelper.h"
+#include "RIFImporterDebug.h"
 
 static void replace_frame_blanks(RIFIFrame*);
 static void replace_atom_blanks(RIFIAtom*);
@@ -24,7 +25,7 @@ int check_query(RIFIData *data, RIFIData *query){
 			q = RIFIData_get_next_atom_any_args(query, NULL))
 	{
 		fprintf(stderr, "query atom: ");
-		fprintf_atom(q);
+		fprintf_RIFIAtom(stderr, q);
 		fprintf(stderr, "\n");
 		replace_atom_blanks(q);
 		atom = RIFIData_get_next_atom(data, q->op, q->args);
@@ -113,8 +114,10 @@ int check_query(RIFIData *data, RIFIData *query){
 
 static void replace_frame_blanks(RIFIFrame*){
 }
-static void replace_atom_blanks(RIFIAtom*){
+
+static void replace_atom_blanks(RIFIAtom* atom){
 }
+
 static void replace_subclass_blanks(RIFISubclass*){
 }
 static void replace_member_blanks(RIFIMember*){

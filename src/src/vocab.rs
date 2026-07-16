@@ -7,6 +7,7 @@ pub mod rif {
     pub const SLOTKEY: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#slotkey");
     pub const SLOTVALUE: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#slotvalue");
     pub const CONST: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#Const");
+    pub const VAR: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#Var");
     //pub const LANG: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#lang");
     pub const CONSTIRI: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#constIRI");
     pub const VALUE: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#value");
@@ -16,6 +17,7 @@ pub mod rif {
     pub const ITEMS: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#items");
     //pub const FORMULA: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#formula");
     pub const VARNAME: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#varname");
+    pub const CONSTNAME: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#constname");
     pub const LEFT: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#left");
     pub const RIGHT: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#right");
     pub const CLASS: NamedNodeRef = NamedNodeRef::new_unchecked("http://www.w3.org/2007/rif#class");

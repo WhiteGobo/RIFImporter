@@ -9,6 +9,7 @@ pub fn retrieve_rifterm(graph: &Graph, root: NamedOrBlankNodeRef,
     ) -> Option<RIFTerm>
 {
     let mut const_iri: Option<CString> = None;
+    let mut constname: Option<CString> = None;
     let mut value: Option<CString> = None;
     let mut items: Option<NamedOrBlankNodeRef> = None;
     let mut lang: Option<CString> = None;
@@ -50,25 +51,33 @@ pub fn retrieve_rifterm(graph: &Graph, root: NamedOrBlankNodeRef,
                     _ => {return None;},
                 };
             }
+            rif::CONSTNAME => {
+                constname = match x.object {
+                    TermRef::Literal(name) => Some(CString::new(name.value()).unwrap()),
+                    _ => {return None;},
+                };
+            }
             _ => {},
         }
     }
-    match (const_iri, value, valuetype, lang, var, items) {
-        (Some(x), None, None, None, None, None)
+    match (const_iri, value, valuetype, lang, var, items, constname) {
+        (Some(x), None, None, None, None, None, None)
             => Some(RIFTerm::IRI(x)),
-        (None, Some(x), None, None, None, None)
+        (None, Some(x), None, None, None, None, None)
             => Some(RIFTerm::TypedLiteral(x, None)),
-        (None, Some(x), Some(y), None, None, None)
+        (None, Some(x), Some(y), None, None, None, None)
             => Some(RIFTerm::TypedLiteral(x, Some(y))),
-        (None, Some(x), None, Some(y), None, None)
+        (None, Some(x), None, Some(y), None, None, None)
             => Some(RIFTerm::LangLiteral(x, y)),
-        (None, None, None, None, Some(_), None)
-            => Some(RIFTerm::Var),
-        (None, None, None, None, None, Some(x))
+        (None, None, None, None, Some(x), None, None)
+            => Some(RIFTerm::Variable(x)),
+        (None, None, None, None, None, Some(x), None)
             => match riftermlist_to_vec(graph, x) {
                 Some(x) => Some(RIFTerm::List(x)),
                 None => None,
             },
+        (None, None, None, None, None, None, Some(x))
+            => Some(RIFTerm::Local(x)),
         _ => None,
     }
 }
@@ -136,11 +145,30 @@ pub fn rdflist_to_riftermvec(graph: &Graph, root: NamedOrBlankNodeRef,
 pub fn riftermlist_to_vec(graph: &Graph, root: NamedOrBlankNodeRef,
     ) -> Option<Vec<RIFTerm>> 
 {
-    let ret1 = rdflist_to_vec(graph, root)?;
+    let ret1 = match rdflist_to_vec(graph, root){
+        Some(x) => x,
+        None => {
+            eprintln!("Failed to translate node to rdflist");
+            return None;
+        }
+    };
     let mut ret2 = Vec::new();
     for x in ret1 {
-        let root: NamedOrBlankNode = x.try_into().ok()?;
-        ret2.push(retrieve_rifterm(graph, root.as_ref())?);
+        let root: NamedOrBlankNode = match x.try_into(){
+            Ok(x) => x,
+            Err(e) => {
+                eprintln!("rdf list expected to only hold identified nodes.");
+                return None;
+            }
+        };
+        let qq = match retrieve_rifterm(graph, root.as_ref()) {
+            Some(x) => x,
+            None => {
+                eprintln!("failed to translate identified node to RIF term.");
+                return None;
+            }
+        };
+        ret2.push(qq);
     }
     Some(ret2)
 }

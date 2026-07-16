@@ -9,3 +9,5 @@ void fprintf_RIFIFrame(FILE*, RIFIFrame* frame);
 void fprintf_RIFISubclass(FILE*, RIFISubclass* x);
 void fprintf_RIFIMember(FILE*, RIFIMember* x);
 void fprintf_RIFIEqual(FILE*, RIFIEqual* x);
+
+size_t RIFITermList_length(RIFITermList*);

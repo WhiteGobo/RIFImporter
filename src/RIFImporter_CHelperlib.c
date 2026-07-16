@@ -62,6 +62,7 @@ void free_RIFITerm(RIFITerm* term)
 			free(term->suffix);
 		case RIF_IRI:
 		case RIF_Local:
+		case RIF_Variable:
 			free(term->value);
 			free(term);
 			break;
@@ -92,6 +93,17 @@ RIFITerm* RIFITerm_new_iri(const char* value){
 	ret->suffix = NULL;
 	return ret;
 }
+
+RIFITerm* RIFITerm_new_variable(const char* value){
+	fprintf(stderr, "brubru variable %s\n", value);
+	RIFITerm* ret = malloc(sizeof(RIFITerm));
+	if (ret == NULL) return NULL;
+	ret->type = RIF_Variable;
+	ret->value = copy2cstring(value);
+	ret->suffix = NULL;
+	return ret;
+}
+
 RIFITerm* RIFITerm_new_typedliteral(const char* value, const char* suffix){
 	RIFITerm* ret = malloc(sizeof(RIFITerm));
 	if (ret == NULL) return NULL;
@@ -184,6 +196,8 @@ RIFITerm* RIFITerm_clone(const RIFITerm* term){
 			return RIFITerm_new_list(term->list, term->rest);
 		case RIF_Local:
 			return RIFITerm_new_local(term->value);
+		case RIF_Variable:
+			return RIFITerm_new_variable(term->value);
 		default:
 			return NULL;
 	}
@@ -267,6 +281,9 @@ void fprintf_RIFITerm(FILE* f, RIFITerm* term){
 		case RIF_Local:
 			fprintf(f, "local(%s)", term->value);
 			break;
+		case RIF_Variable:
+			fprintf(f, "?%s", term->value);
+			break;
 	}
 }
 
@@ -311,4 +328,12 @@ void fprintf_RIFIEqual(FILE* f, RIFIEqual* x){
 	fprintf_RIFITerm(f, x->left);
 	fprintf(f, "=");
 	fprintf_RIFITerm(f, x->right);
+}
+
+size_t RIFITermList_length(RIFITermList* list){
+	size_t ret = 0;
+	for (RIFITermList* x=list; x != NULL; x= x->rest){
+		ret++;
+	}
+	return ret;
 }

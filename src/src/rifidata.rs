@@ -4,6 +4,7 @@ use oxrdf::{
     NamedNodeRef, TermRef, NamedOrBlankNodeRef, BlankNode, NamedOrBlankNode,
     Term, NamedNode, LiteralRef, Literal, Graph,
 };
+use crate::error::GenTermError;
 use crate::genterms::BNodeMap;
 use crate::entailment_map::Entailment;
 use crate::interpreter::{
@@ -20,12 +21,22 @@ pub enum RIFTerm {
     LangLiteral(CString, CString),
     List(Vec<RIFTerm>),
     Local(CString),
+    Variable(CString),
     Var,
 }
 
 impl RIFTerm {
     pub fn empty_list() -> Self {
         RIFTerm::List(Vec::new())
+    }
+
+    pub fn get_local(oldvalue: &str) -> Result<Self, GenTermError> {
+        let mut value = "l0_".to_owned();
+        value.push_str(oldvalue);
+        match CString::new(value){
+            Ok(x) => Ok(RIFTerm::Local(x)),
+            Err(e) => Err(e.into()),
+        }
     }
 }
 
