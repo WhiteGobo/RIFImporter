@@ -156,7 +156,7 @@ RIFIData* load_data(const char* filepath, const char* entailment){
 	}
 	fprintf(stderr, "input : %s\n", tmpinput);
 	dataloader = RIFIGraph_new();
-	if (data == NULL){
+	if (dataloader == NULL){
 		fprintf(stderr, "Failed to initialize RIFIData\n");
 		return NULL;
 	}
