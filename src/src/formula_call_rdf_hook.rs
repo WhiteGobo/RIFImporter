@@ -632,7 +632,7 @@ fn send_frame(
         Ok(x) => x, 
         Err(e) => {return Err(e);},
     };
-    let (slots, slots_type) = match extend_cstring(&id, c"_slot"){
+    let (slots, slots_type) = match extend_cstring(&id, c"_slotlist"){
         Ok(x) => (x, BNODE),
         Err(_) => {return Err(HookError::internal(0));},
     };
@@ -640,7 +640,7 @@ fn send_frame(
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
-    match hook(slot.as_ptr(), slots_type, RDF_FIRST, slot.as_ptr(), NULL, slottype, NULL, BNODE, hook_data)
+    match hook(slots.as_ptr(), slots_type, RDF_FIRST, slot.as_ptr(), NULL, slottype, NULL, BNODE, hook_data)
     {
         0 => {},
         x => {return Err(HookError::retval(x));},
