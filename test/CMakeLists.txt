@@ -41,6 +41,7 @@ foreach( x IN ITEMS
 		"data07"
 		"data08"
 		"data09"
+		#"data10" #TODO recreate something with constname
 )
 	set(testname "RIFImporter::export::${x}")
 	set(datapath "${basepath}/${x}.ttl")

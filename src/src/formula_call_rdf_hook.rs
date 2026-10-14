@@ -98,6 +98,7 @@ const RIF_CLASS: *const i8 = c"http://www.w3.org/2007/rif#class".as_ptr();
 const RIF_SUB: *const i8 = c"http://www.w3.org/2007/rif#sub".as_ptr();
 const RIF_SUPER: *const i8 = c"http://www.w3.org/2007/rif#super".as_ptr();
 const RIF_CONSTIRI: *const i8 = c"http://www.w3.org/2007/rif#constIRI".as_ptr();
+const RIF_CONSTNAME: *const i8 = c"http://www.w3.org/2007/rif#constname".as_ptr();
 const RIF_VALUE: *const i8 = c"http://www.w3.org/2007/rif#value".as_ptr();
 const RIF_ITEMS: *const i8 = c"http://www.w3.org/2007/rif#items".as_ptr();
 const RIF_VARNAME: *const i8 = c"http://www.w3.org/2007/rif#varname".as_ptr();
@@ -285,7 +286,12 @@ fn send_local(
     hook: TripleHandler,
     hook_data: *mut c_void,
 ) -> Result<(CString, u8), HookError> {
+    const NULL: *const c_char = ptr::null();
     match hook(id.as_ptr(), id_type, RDF_TYPE, RIF_CONST, ptr::null(), URI, ptr::null(), BNODE, hook_data){
+        0 => {},
+        x => {return Err(HookError::retval(x));},
+    }
+    match hook(id.as_ptr(), id_type, RIF_CONSTNAME, value.as_ptr(), NULL, TYPEDLITERAL, NULL, BNODE, hook_data){
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
