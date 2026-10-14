@@ -645,7 +645,7 @@ fn send_frame(
         0 => {},
         x => {return Err(HookError::retval(x));},
     }
-    match hook(slot.as_ptr(), slots_type, RDF_REST, RDF_NIL_CSTR.as_ptr(), NULL, URI, NULL, BNODE, hook_data)
+    match hook(slots.as_ptr(), slots_type, RDF_REST, RDF_NIL_CSTR.as_ptr(), NULL, URI, NULL, BNODE, hook_data)
     {
         0 => {},
         x => {return Err(HookError::retval(x));},
