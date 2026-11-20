@@ -156,7 +156,7 @@ pub fn riftermlist_to_vec(graph: &Graph, root: NamedOrBlankNodeRef,
     for x in ret1 {
         let root: NamedOrBlankNode = match x.try_into(){
             Ok(x) => x,
-            Err(e) => {
+            Err(_e) => {
                 eprintln!("rdf list expected to only hold identified nodes.");
                 return None;
             }

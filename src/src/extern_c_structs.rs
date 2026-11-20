@@ -77,11 +77,11 @@ fn c2rust_convert_local(cterm: *const RIFITerm) -> Option<RIFTerm>{
         if (*cterm).value.is_null() {return None;}
         let value = match CStr::from_ptr((*cterm).value).to_str(){
             Ok(x) => x,
-            Err(e) => {return None;},
+            Err(_e) => {return None;},
         };
         match RIFTerm::get_local(value){
             Ok(x) => Some(x),
-            Err(e) => None,
+            Err(_e) => None,
         }
     }
 }

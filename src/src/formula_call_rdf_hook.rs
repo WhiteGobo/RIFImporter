@@ -55,14 +55,9 @@ pub type TripleHandler = extern "C" fn(
 fn new_bnode(id_generator: &AtomicUsize) -> CString {
     let id = id_generator.update(Ordering::Relaxed, Ordering::Relaxed, |x| x+1);
     //Ensure this always works
-    let bnode_name = unsafe{
-        CString::new(format!("bnode_{}", id)).unwrap()
-    };
+    let bnode_name = CString::new(format!("bnode_{}", id)).unwrap();
     bnode_name
 }
-
-use oxrdf::vocab::rdf;
-use crate::vocab::rif;
 
 const URI: u8 = 0;
 const BNODE: u8 = 1;
@@ -311,6 +306,7 @@ fn send_var(
         x => {return Err(HookError::retval(x));},
     }
     return Err(HookError::other("send var not implemented"));
+    /*
     match hook(id.as_ptr(), id_type, RIF_VARNAME,
                 c"x".as_ptr(), NULL, TYPEDLITERAL,
                 NULL, BNODE, hook_data)
@@ -319,6 +315,7 @@ fn send_var(
         x => {return Err(HookError::retval(x));},
     }
     Ok((id, id_type))
+    */
 }
 
 fn send_iri(

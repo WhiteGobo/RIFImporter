@@ -1,11 +1,9 @@
 use std::ffi::CString;
-use std::collections::HashMap;
 use oxrdf::{
-    NamedNodeRef, TermRef, NamedOrBlankNodeRef, BlankNode, NamedOrBlankNode,
+    NamedNodeRef, TermRef, NamedOrBlankNodeRef, NamedOrBlankNode,
     Term, NamedNode, LiteralRef, Literal, Graph,
 };
 use crate::error::GenTermError;
-use crate::genterms::BNodeMap;
 use crate::entailment_map::Entailment;
 use crate::interpreter::{
     RIFInterpreter, SimpleInterpreter, RDFInterpreter, RDFSInterpreter,

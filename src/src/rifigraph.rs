@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use crate::genterms::BNodeMap;
 use oxrdf::{
-    NamedNodeRef, TermRef, NamedOrBlankNodeRef, Triple, TripleRef, Graph,
+    NamedNodeRef, TermRef, NamedOrBlankNodeRef, TripleRef, Graph,
     BlankNode,
 };
 use crate::rifidata::RIFIData;

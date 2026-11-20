@@ -1,5 +1,5 @@
 use std::ptr;
-use std::ffi::{c_char, CStr, c_uchar, c_void, CString};
+use std::ffi::{c_char, CStr, c_void};
 use crate::rifidata::{RIFIData, RIFTerm, Atom, Frame, Member, Equal, Subclass};
 use crate::rifigraph::RIFIGraph;
 use crate::genterms::{
@@ -20,7 +20,7 @@ use crate::extern_c_structs::{
 };
 
 
-///declared in `RIFImporterTermGenerator.h`
+//declared in `RIFImporterTermGenerator.h`
 unsafe extern "C" {
     pub unsafe fn RIFITerm_new_iri(value: *const c_char) -> *mut RIFITerm;
     pub unsafe fn RIFITerm_new_variable(value: *const c_char) -> *mut RIFITerm;
