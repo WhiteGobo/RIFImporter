@@ -26,7 +26,7 @@ unsafe extern "C" {
     pub unsafe fn RIFITerm_new_variable(value: *const c_char) -> *mut RIFITerm;
     pub unsafe fn RIFITerm_new_typedliteral(value: *const c_char, suffix: *const c_char) -> *mut RIFITerm;
     pub unsafe fn RIFITerm_new_langliteral(value: *const c_char, suffix: *const c_char) -> *mut RIFITerm;
-    pub unsafe fn RIFITermList_append(old: *mut RIFITermList, new: *mut RIFITerm) -> *mut RIFITermList;
+    pub unsafe fn RIFITermList_append(old: *mut RIFITermList, new: *const RIFITerm) -> *mut RIFITermList;
     pub unsafe fn RIFITerm_new_local(value: *const c_char) -> *mut RIFITerm;
     pub unsafe fn RIFIFrame_new(object: *mut RIFITerm, slotkey: *mut RIFITerm, slotvalue: *mut RIFITerm) -> *mut RIFIFrame;
     pub unsafe fn RIFIAtom_new(op: *mut RIFITerm, args: *mut RIFITermList) -> *mut RIFIAtom;
@@ -34,6 +34,7 @@ unsafe extern "C" {
     pub unsafe fn RIFIMember_new(instance: *mut RIFITerm, class: *mut RIFITerm) -> *mut RIFIMember;
     pub unsafe fn RIFIEqual_new(left: *mut RIFITerm, right: *mut RIFITerm) -> *mut RIFIEqual;
     pub unsafe fn RIFITerm_new_list(list: *const RIFITermList, rest: *const RIFITerm) -> *mut RIFITerm;
+    pub unsafe fn free_RIFITerm(x: *mut RIFITerm);
     pub unsafe fn free_RIFITermList(list: *mut RIFITermList);
 }
 
@@ -389,6 +390,7 @@ fn vec_to_rifitermlist(list: &Vec<RIFTerm>) -> *mut RIFITermList {
         unsafe {
             let new = x.to_c_term();
             ret = RIFITermList_append(ret, new);
+            free_RIFITerm(new);
         }
     }
     ret
@@ -484,7 +486,7 @@ pub extern "C" fn RIFIFormulas_to_RIFIData(
     }
     //consume graph
     let g: RIFIFormulas = Box::into_inner(unsafe {Box::from_raw(formulas)});
-    let x = g.to_RIFIData();
+    let x = (*formulas).to_RIFIData();
 
     let mybox = Box::new(x);
     let config = Box::into_raw(mybox);

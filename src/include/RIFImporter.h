@@ -116,7 +116,7 @@ RIFISubclass* RIFIData_get_next_subclass(RIFIData*, RIFITerm* sub, RIFITerm* sup
 RIFIMember* RIFIData_get_next_member(RIFIData*, RIFITerm* instance, RIFITerm* class);
 RIFIEqual* RIFIData_get_next_equal(RIFIData*, RIFITerm* left, RIFITerm* right);
 
-RIFITermList* RIFITermList_append(RIFITermList*, RIFITerm*);
+RIFITermList* RIFITermList_append(RIFITermList*, const RIFITerm*);
 
 void free_RIFIAtom(RIFIAtom*);
 void free_RIFIFrame(RIFIFrame*);

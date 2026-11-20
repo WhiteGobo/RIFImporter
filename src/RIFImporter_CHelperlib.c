@@ -81,6 +81,7 @@ void free_RIFITermList(RIFITermList* x)
 	while (x != NULL){
 		rest = x->rest;
 		free_RIFITerm(x->first);
+		free(x);
 		x = rest;
 	}
 }
@@ -153,14 +154,14 @@ RIFITermList* RIFITermList_clone(const RIFITermList* list){
 	const RIFITermList* tmp = list;
 	if (list == NULL) return NULL;
 	while (tmp != NULL){
-		ret = RIFITermList_append(ret, RIFITerm_clone(tmp->first));
+		ret = RIFITermList_append(ret, tmp->first);
 		tmp = tmp->rest;
 	}
 	return ret;
 }
 
 
-RIFITermList* RIFITermList_append(RIFITermList* old, RIFITerm* term){
+RIFITermList* RIFITermList_append(RIFITermList* old, const RIFITerm* term){
 	RIFITermList* tmp;
 	RIFITermList* new = malloc(sizeof(RIFITermList));
 	if (new == NULL){
