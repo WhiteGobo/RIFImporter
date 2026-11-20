@@ -486,7 +486,7 @@ pub extern "C" fn RIFIFormulas_to_RIFIData(
     }
     //consume graph
     let g: RIFIFormulas = Box::into_inner(unsafe {Box::from_raw(formulas)});
-    let x = (*formulas).to_RIFIData();
+    let x = g.to_RIFIData();
 
     let mybox = Box::new(x);
     let config = Box::into_raw(mybox);
